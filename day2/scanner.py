@@ -71,7 +71,7 @@ def scanline(line):
         count = line.count(char)
         if (count == 2):
             twos+=1
-        elif (count ==3):
+        elif (count == 3):
             threes+=1
         line = line.replace(char,'')
     return (twos>0,threes>0)

@@ -80,8 +80,8 @@ def main(file):
     input = open(file, "r")
     points = []
     for point in input:
-        (x,y) = point.strip().split(',')
-        points.append((int(x),int(y)))
+        (x,y) = map(int, point.strip().split(','))
+        points.append((x,y))
     map = Map()
     map.max_dist = 10000
     map.parse(points)
