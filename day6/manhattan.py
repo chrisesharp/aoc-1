@@ -22,9 +22,8 @@ class Map:
         owning_point = None
         for y in range(self.minY,self.maxY+1):
             for x in range(self.minX, self.maxX+1):
-                owners = self.owner((x,y))
-                if len(owners) == 1:
-                    owner = owners[0]
+                owner = self.find_owner((x,y))
+                if owner:
                     self.owners.update({(x,y):owner})
                     area_count = len(self.areas.get(owner))
                     if area_count > biggest_area and owner not in self.infinites:
@@ -34,7 +33,8 @@ class Map:
         print("biggest owner:",owning_point)
         return owning_point
         
-    def owner(self,target):
+    def find_owner(self,target):
+        the_owner = None
         owned = []
         min = 999
         total_dist = 0
@@ -46,17 +46,22 @@ class Map:
             elif dist == min:
                 owned.append(point)
             total_dist+=dist
+        the_owner = self.found_owner(target,owned)
+        self.check_region(target, total_dist)
+        return the_owner
+    
+    def found_owner(self, target, owned):
+        the_owner = None
         if len(owned) == 1:
-            points = self.areas.get(owned[0])
+            the_owner = owned[0]
+            points = self.areas.get(the_owner)
             if points is None:
                 points = []
             points.append(target)
-            self.areas.update({owned[0]:points})
+            self.areas.update({the_owner:points})
             if self.at_edge(target):
-                self.infinites.append(owned[0])
-        if total_dist < self.max_dist:
-            self.region.append(target)
-        return owned
+                self.infinites.append(the_owner)
+        return the_owner
     
     def area(self, point):
         return len(self.areas[point])
@@ -67,6 +72,11 @@ class Map:
     
     def region_size(self):
         return len(self.region)
+    
+    def check_region(self, target, dist):
+        if dist < self.max_dist:
+            self.region.append(target)
+        
     
 def main(file):
     input = open(file, "r")
