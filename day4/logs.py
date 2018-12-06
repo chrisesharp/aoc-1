@@ -18,8 +18,7 @@ class Logger:
             logs.update({timestamp:entry})
             if entry[:5] == "Guard":
                 rest = entry[7:]
-                idx = rest.index(" ")
-                guard = rest[0:idx]
+                guard = rest[0:rest.index(" ")]
                 self.guards.update({guard:timestamp})
         
         for key in sorted(logs.keys()):
@@ -33,41 +32,43 @@ class Logger:
     
     def guard_sleep(self, guard):
         sleep_time=0
-        on_guard=False
-        term="Guard #"
-        sleeps = self.sleeps.get(guard)
-        if sleeps is None:
-            sleeps = {}
-            
+        our_guard=False
+
+        sleeps = self.sleeps.get(guard, {})
         for entry in self.sorted_log:
             event = self.sorted_log[entry]
-            if event.find(term)>-1:
-                if event.find(term+str(guard))>-1:
-                    on_guard=True
-                else:
-                    on_guard=False
-            if on_guard:
+            our_guard = self.is_guard(event, guard, our_guard) 
+            if our_guard:
                 if event[:5]=="falls":
                     start=entry
                 if event[:5]=="wakes":
-                    sleep=abs(start.minute-entry.minute)
-                    for minute in range(start.minute, entry.minute):
-                        count = sleeps.get(minute)
-                        if count is None:
-                            count = 0
-                        else:
-                            count+=1
-                        sleeps.update({minute:count})
-                    sleep_time+=sleep
+                    sleep_time+= self.update_minutes_asleep(sleeps, start, entry)
         self.sleeps.update({guard:sleeps})
         return sleep_time
     
+    def update_minutes_asleep(self, sleeps, start, entry):
+        sleep=abs(start.minute-entry.minute)
+        for minute in range(start.minute, entry.minute):
+            count = sleeps.get(minute,-1) + 1
+            sleeps.update({minute:count})
+        return sleep
+        
+    def is_guard(self, event, guard, default):
+        our_guard = default
+        guard_entry="Guard #"
+        if event.find(guard_entry)>-1:
+            if event.find(guard_entry+str(guard))>-1:
+                our_guard=True
+            else:
+                our_guard=False
+        return our_guard
+    
     def find_minute(self,guard):
-        sleeps = self.sleeps.get(guard)
+        sleeps = self.sleeps.get(guard, False)
         longest = 0
         longest_minute = 0
         most_frequent = 0
-        if sleeps is not None:
+        if sleeps:
             for minute in sleeps:
                 if sleeps[minute] > longest:
                     longest=sleeps[minute]
@@ -102,6 +103,7 @@ class Logger:
         print("Answer is ", int(sleepiest_guard)*sleepiest_guard_time)
         print("Most frequent guard is ", freq_guard," and minute is ", freq_minute)
         print("Answer is ", int(freq_guard) * freq_minute)
+
 if __name__ == "__main__":
     logs = Logger()
     logs.main(sys.argv[1])

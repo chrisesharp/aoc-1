@@ -54,9 +54,7 @@ class Map:
         the_owner = None
         if len(owned) == 1:
             the_owner = owned[0]
-            points = self.areas.get(the_owner)
-            if points is None:
-                points = []
+            points = self.areas.get(the_owner, [])
             points.append(target)
             self.areas.update({the_owner:points})
             if self.at_edge(target):
