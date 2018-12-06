@@ -31,7 +31,8 @@ def test_6():
                 (3, 4),
                 (5, 5),
                 (8, 9)  ]
-    map = Map(points)
+    map = Map()
+    map.parse(points)
     assert (map.minX,map.minY) == (1,1)
     assert (map.maxX,map.maxY) == (8,9)
 
@@ -42,12 +43,14 @@ def test_7():
                 (3, 4),
                 (5, 5),
                 (8, 9)  ]
-    map = Map(points)
-    [(x,y)] = map.find_largest_point()
+    map = Map()
+    map.parse(points)
+    (x,y) = map.find_largest_point()
     assert (x,y) == (5,5)
-    assert map.owners.get((4,5))==[(5,5)]
+    assert map.owners.get((4,5))==(5,5)
     assert map.owners.get((1,4))==None
     assert map.area((5,5)) == 17
+    assert map.region_size() == 16
     
     
     
