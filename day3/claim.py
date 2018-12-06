@@ -14,21 +14,14 @@ class Claim:
     def area(self, key):
         input = self.claims.get(key)
         this_area = set()
-        parts = input.split(':')
-        orig = parts[0].split(',')
-        dims = parts[1].split('x')
-        origX = int(orig[0])
-        origY = int(orig[1])
-        width = int(dims[0])
-        height = int(dims[1])
+        claim, area = input.split(':')
+        origX, origY = map(int, claim.split(','))
+        width, height = map(int, area.split('x'))
         for y in range(origY, origY + height):
             for x in range(origX, origX + width):
                 this_area.add((x,y))
-                list = self.locations.get((x,y))
-                if (list is None):
-                    list = [key]
-                else:
-                    list.append(key)
+                list = self.locations.get((x,y),[])
+                list.append(key)
                 self.locations.update({(x,y):list})
         return this_area
     
