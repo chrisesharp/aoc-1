@@ -19,8 +19,6 @@ class Marble:
                 score += marble + popped
                 self.players[player] = score
             player = max(1, (player + 1) % (len(self.players)))
-            #sys.stdout.write("[{}:{}]\t{}\n".format(player,self.players[player],''))
-        
         high_score = 0
         winner = 0
         for player in range(len(self.players)):
