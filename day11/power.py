@@ -54,9 +54,8 @@ class Grid:
         self.powerup()
         max_power = 0
         max_power_sq = 0
-        with Pool(100) as p:
-            result = max(p.map(self.grid_section, [(x,y) for y in range(1,301) for x in range(1,301)]))
-        max_power, max_power_sq, max_size = result
+        with Pool(8) as p:
+            (max_power, max_power_sq, max_size) = max(p.map(self.grid_section, [(x,y) for y in range(1,301) for x in range(1,301)]))
         print("Max power = ", max_power)
         print("square location: ", max_power_sq)
         print("square size: ", max_size)
@@ -81,6 +80,4 @@ class Grid:
 if __name__ == "__main__":
     grid = Grid(7315)
     grid.main()
-                
 
-    
