@@ -51,4 +51,12 @@ def test_8():
     grid = Grid(18)
     grid.powerup()
     assert grid.pwr_square((90,269),16) == 113
+
+def test_9():
+    grid = Grid(18)
+    grid.powerup()
+    power, loc, size = grid.grid_section((90,269))
+    assert power == 113
+    assert loc == (90,269)
+    assert size == 16
     

@@ -1,3 +1,6 @@
+from multiprocessing import Pool
+import operator
+
 def power_level(x,y,sn):
     rackid = x + 10
     pwr = rackid * y
@@ -16,6 +19,7 @@ class Grid:
     def __init__(self, sn):
         self.sn = sn
         self.cells = [[0]*301 for x in range(301)]
+        self.squares = {}
         self.max_power = 0
         self.max_power_sq = (0,0,3)
         
@@ -31,33 +35,51 @@ class Grid:
     def pwr_square(self, cell, size=3):
         total_pwr = 0
         (x,y) = cell
+        cache = self.squares.get((cell,size),None)
+        if cache:
+            return cache
+             
+        if size>1:
+            total =  self.pwr_square((x+1,y+1),size-1)
+            total_pwr += total
+            total_pwr += sum(self.cells[y][x:(x+size)])
+            total_pwr += sum([self.cells[y+i][x] for i in range(1,size)])
+        else:
+            total_pwr = self.cells[y][x]
         
-        if size>0:
-            for dx in range(size):
-                total_pwr += self.pwr_level((x+dx,y))
-            for dy in range(1,size):
-                total_pwr += self.pwr_level((x,y+dy))
-            total_pwr += self.pwr_square((x+1,y+1),size-1)
-            
+        self.squares.update({(cell,size):total_pwr})
         return total_pwr
     
     def main(self):
         self.powerup()
-        for y in range(1,299):
-            for x in range(1,299):
-                for z in range(1,300-max(x,y)):
-                    this_square = self.pwr_square((x,y),z)
-                    if this_square > self.max_power:
-                        self.max_power = this_square
-                        self.max_power_sq = (x,y,z)
+        max_power = 0
+        max_power_sq = 0
+        with Pool(100) as p:
+            result = max(p.map(self.grid_section, [(x,y) for y in range(1,301) for x in range(1,301)]))
+        max_power, max_power_sq, max_size = result
+        print("Max power = ", max_power)
+        print("square location: ", max_power_sq)
+        print("square size: ", max_size)
+    
+    def print_loc(self, cell):
+        print(cell)
         
-        print("Max power = ", self.max_power)
-        print("square location: ", self.max_power_sq)
+    def grid_section(self, cell, size=302):
+        x, y = cell
+        total = 0
+        sq_loc = (0,0)
+        sq_size = 0
+        for z in range(1,size-max(x,y)):
+            tot = self.pwr_square((x,y),z)
+            if tot > total:
+                total = tot
+                sq_loc = cell
+                sq_size = z
+        return [total, sq_loc, sq_size]
         
 
 if __name__ == "__main__":
     grid = Grid(7315)
-    #grid = Grid(18)
     grid.main()
                 
 
