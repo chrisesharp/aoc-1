@@ -49,19 +49,6 @@ class Grid:
         
         self.squares.update({(cell,size):total_pwr})
         return total_pwr
-    
-    def main(self):
-        self.powerup()
-        max_power = 0
-        max_power_sq = 0
-        with Pool(8) as p:
-            (max_power, max_power_sq, max_size) = max(p.map(self.grid_section, [(x,y) for y in range(1,301) for x in range(1,301)]))
-        print("Max power = ", max_power)
-        print("square location: ", max_power_sq)
-        print("square size: ", max_size)
-    
-    def print_loc(self, cell):
-        print(cell)
         
     def grid_section(self, cell, size=302):
         x, y = cell
@@ -75,6 +62,16 @@ class Grid:
                 sq_loc = cell
                 sq_size = z
         return [total, sq_loc, sq_size]
+    
+    def main(self):
+        self.powerup()
+        max_power = 0
+        max_power_sq = 0
+        with Pool(8) as p:
+            (max_power, max_power_sq, max_size) = max(p.map(self.grid_section, [(x,y) for y in range(1,301) for x in range(1,301)]))
+        print("Max power = ", max_power)
+        print("square location: ", max_power_sq)
+        print("square size: ", max_size)
         
 
 if __name__ == "__main__":
