@@ -5,6 +5,8 @@ class Pots:
         self.start = 5
         self.end = len(initial) + self.offset
         self.rules = {}
+        self.match = 0
+        self.last_row = ""
     
     def add_rules(self, rules):
         self.rules = rules
@@ -19,6 +21,7 @@ class Pots:
         self.add_rules(rules)
     
     def apply_rules(self, width=39):
+        width = len(self.pots) + 10
         next_gen = ["." for x in range(width)]
         for i in range(self.start-3,self.end+6):
             matched = False
@@ -54,39 +57,45 @@ class Pots:
         return total
         
     def count_last(self, iteration):
-        self.pots = "###...###...###...###...###...###...###...###...###...###...###...###...###...###...###...###...###...###...###...###...###...###....###...###"
-        self.start_pot = 54 + (iteration - 91)
+        self.start_pot = self.start + (iteration - self.match)
         print("For iteration ",iteration,"\nStart pot = ", self.start_pot)
+        print("start = ", self.start)
+        print("match = ", self.match)
         print("offset = ", self.offset)
         total = 0
-        for i in range(len(self.pots)):
-            if self.pots[i] == '#':
+        for i in range(len(self.last_row)):
+            if self.last_row[i] == '#':
                 total += i + self.start_pot - self.offset
         return total
     
     def print_gen(self):
         output = ""
-        for i in range(self.start-1,self.end+2):
+        for i in range(self.start,self.end+2):
             output += self.pots[i]
         return output
     
     def main(self, width):
         pots.read_rules("input.txt")
-        #pots.read_rules("test.txt")
         print("  \t      0         1         2          3")
         print("  \t      |         0         0          0")
         print("0 :\t",self.pots)
-        for i in range(1,93):
+        for i in range(1,99):
             self.apply_rules(width)
             plants = self.count_plants()
             row = self.print_gen()
             print(i,":\t",row, self.start,self.end,self.offset, plants)
+            if self.last_row != row:
+                self.last_row = row
+            else:
+                print("REPEAT! We're stable")
+                self.match = i - 1
+                self.start = self.start - 1
+                break
         print("Offset:", self.offset)
         print("Total plants: ",plants)
         print("Total for 5B: ", self.count_last(50000000000))
 
 if __name__ == "__main__":
     initial = "#.####...##..#....#####.##.......##.#..###.#####.###.##.###.###.#...#...##.#.##.#...#..#.##..##.#.##"
-    #initial = "#..#.#..##......###...###"
     pots = Pots(initial)
     pots.main(550)

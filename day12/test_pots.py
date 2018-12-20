@@ -11,8 +11,10 @@ def test_1():
     
     pots = Pots(initial)
     pots.add_rules(rules)
-    result = pots.apply_rules()
-    assert result == ".....#...#....#.....#..#..#..#........."
+    pots.apply_rules()
+    pots.count_plants()
+    result = pots.print_gen()
+    assert result == "#...#....#.....#..#..#..#."
 
 def test_2():
     initial = "#..#.#..##......###...###"
@@ -26,8 +28,10 @@ def test_2():
     pots = Pots(initial)
     pots.add_rules(rules)
     pots.apply_rules()
-    result = pots.apply_rules()
-    assert result == ".....##..##...##....#..#..#..##........"
+    pots.apply_rules()
+    pots.count_plants()
+    result = pots.print_gen()
+    assert result == "##..##...##....#..#..#..##."
 
 def test_3():
     initial = "#..#.#..##......###...###"
@@ -42,5 +46,7 @@ def test_3():
     pots.add_rules(rules)
     pots.apply_rules()
     pots.apply_rules()
-    result = pots.apply_rules()
-    assert result == "....#.#...#..#.#....#..#..#...#........"
+    pots.apply_rules()
+    pots.count_plants()
+    result = pots.print_gen()
+    assert result == "#.#...#..#.#....#..#..#...#."
