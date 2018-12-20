@@ -21,7 +21,7 @@ class Pots:
         self.add_rules(rules)
     
     def apply_rules(self, width=39):
-        width = len(self.pots) + 10
+        width = len(self.pots) + 2
         next_gen = ["." for x in range(width)]
         for i in range(self.start-3,self.end+6):
             matched = False
