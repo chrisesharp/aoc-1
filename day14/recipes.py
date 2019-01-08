@@ -11,9 +11,9 @@ class Scoreboard:
         new = str(self.recipes[self.elf[0]] + self.recipes[self.elf[1]])
         return list(map(lambda x: int(x), new))
         
-    def iterate(self):
-        while len(self.recipes) < (self.target+10):
-            self.recipes.extend(self.new_recipes())
+    def iterate(self, target):
+        while len(self.recipes) < (target+10):
+            self.recipes+=(self.new_recipes())
             self.choose_recipes()
     
     def scores(self):
@@ -33,15 +33,16 @@ class Scoreboard:
     
     def scan(self, target):
         found_target = None
+        count = 1000000
         while not found_target:
             print(len(self.recipes))
-            self.recipes.extend(self.new_recipes())
-            self.choose_recipes()
+            self.iterate(count)
             recipes = self.stringify(self.recipes)
             index = recipes.find(target)
             if index > -1:
                 found_target = index
                 break
+            count+=1000000
         return found_target
     
     def main(self):

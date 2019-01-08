@@ -2,23 +2,23 @@ from recipes import Scoreboard
 
 def test_1():
     scoreboard = Scoreboard(1)
-    scoreboard.iterate()
+    scoreboard.iterate(1)
     assert scoreboard.scores() == [3, 7, 1, 0, 1, 0, 1, 2, 4, 5, 1]
 
 
 def test_2():
     scoreboard = Scoreboard(1)
-    scoreboard.iterate()
+    scoreboard.iterate(1)
     assert scoreboard.ten_recipes() == "7101012451"
 
 def test_3():
     scoreboard = Scoreboard(5)
-    scoreboard.iterate()
+    scoreboard.iterate(5)
     assert scoreboard.ten_recipes() == "0124515891"
 
 def test_4():
     scoreboard = Scoreboard(9)
-    scoreboard.iterate()
+    scoreboard.iterate(9)
     assert scoreboard.ten_recipes() == "5158916779"
 
 def test_5():
