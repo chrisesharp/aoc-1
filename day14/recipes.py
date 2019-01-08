@@ -33,7 +33,7 @@ class Scoreboard:
     
     def scan(self, target):
         found_target = None
-        count = 1000000
+        count = 21000000
         while not found_target:
             print(len(self.recipes))
             self.iterate(count)
@@ -42,7 +42,7 @@ class Scoreboard:
             if index > -1:
                 found_target = index
                 break
-            count+=1000000
+            count+=10000000
         return found_target
     
     def main(self):
