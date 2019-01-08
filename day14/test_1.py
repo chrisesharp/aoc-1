@@ -23,21 +23,16 @@ def test_4():
 
 def test_5():
     scoreboard = Scoreboard(1)
-    pos = scoreboard.scan("5158916779")
+    pos = scoreboard.scan("5158916779",10000)
     assert pos == 9
 
 def test_6():
     scoreboard = Scoreboard(1)
-    pos = scoreboard.scan("92510")
+    pos = scoreboard.scan("92510",10000)
     assert pos == 18
 
 def test_7():
     scoreboard = Scoreboard(1)
-    pos = scoreboard.scan("59414")
+    pos = scoreboard.scan("59414",10000)
     assert pos == 2018
-
-#def test_8():
-#    scoreboard = Scoreboard(1)
-#    pos = scoreboard.scan("681901")
-#    assert pos == 2018
     

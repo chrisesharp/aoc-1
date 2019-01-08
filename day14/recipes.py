@@ -31,9 +31,9 @@ class Scoreboard:
     def ten_recipes(self):
         return self.stringify(self.recipes[self.target:self.target+10])
     
-    def scan(self, target):
+    def scan(self, target, chunksize):
         found_target = None
-        count = 21000000
+        count = chunksize
         while not found_target:
             print(len(self.recipes))
             self.iterate(count)
@@ -42,7 +42,7 @@ class Scoreboard:
             if index > -1:
                 found_target = index
                 break
-            count+=10000000
+            count+=chunksize
         return found_target
     
     def main(self):
@@ -50,7 +50,7 @@ class Scoreboard:
         print(self.ten_recipes())
     
     def main_pt2(self):
-        print(self.scan(str(self.target)))
+        print(self.scan(str(self.target),21000000))
 
 if __name__ == "__main__":
     input = 681901
