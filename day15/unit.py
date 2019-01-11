@@ -17,10 +17,10 @@ class Unit:
     def find_targets(self, units):
         return list(filter(lambda x: x.race != self.race, units))
     
-    def find_ranges(self, targets, sim):
+    def find_ranges(self, targets):
         ranges = []
         for target in targets:
-            adjacents = sim.get_clear_space(target.loc)
+            adjacents = self.sim.get_clear_space(target.loc)
             ranges.extend(adjacents)
         return ranges
     
@@ -36,9 +36,9 @@ class Unit:
     def available_space(self, loc, spaces=set()):
         options = self.sim.get_clear_space(loc)
         if not options:
-            return None
+            return spaces
         if options.issubset(spaces):
-            return None
+            return spaces
         
         spaces = spaces.union(options)
         for option in options:
@@ -53,18 +53,26 @@ class Unit:
         for target in targets:
             if self.is_reachable(target, available_spaces):
                 reachable_targets.append(target)
-        
         targets_distance = {}
         for target in reachable_targets:
-            targets_distance[target]=self.sim.find_path(self.loc,target)
+            print("finding path for ", target)
+            path = self.sim.find_path(self.loc,target)
+            if path:
+                targets_distance[target]=path
+                print("found one of length ",len(targets_distance[target]))
         
         min_path_length = 99
         shortest = {}
-        for path in (sorted(targets_distance.items(), key=lambda x: len(x[1]))):
+        for path in (sorted(targets_distance.items(), key=lambda x: len(x[1]) )):
             if len(path[1]) <= min_path_length:
                 min_path_length = len(path[1])
                 shortest[path[0]]=path[1]
             else:
                 break
         return shortest
+    
+    def choose_target(self, targets):
+        if targets:
+            return list(sorted(targets.keys(), key=lambda x: (x[1],x[0])))[0]
+        return None
     
