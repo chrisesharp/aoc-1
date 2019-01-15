@@ -177,7 +177,7 @@ class Simulation:
         adj.f = adj.h + adj.g
 
     def combat(self, rounds):
-        while not self.winner and (rounds - self.round) != 0:
+        while (rounds - self.round) != 0:
             print(self.render([]))
             self.determine_order()
             units = self.turn_order()
@@ -185,12 +185,11 @@ class Simulation:
                 self.current_unit = unit.loc
                 unit.set_sim(self)
                 targets = unit.find_targets(units)
+                if not targets:
+                    return
                 ranges, contacts = unit.find_ranges(targets)
                 #print(self.render([[[self.current_unit]]]))
-                if contacts:
-                    chosen_target = unit.choose_target(contacts)
-                    unit.hit(chosen_target)
-                else:
+                if not contacts:
                     closest = unit.find_closest_targets(ranges)
                     chosen_target = unit.choose_target(closest)
                     #print(self.render([closest.values()]))
@@ -200,12 +199,12 @@ class Simulation:
                         unit.loc = closest[chosen_target][0]
                         self.field[unit.loc] = Cell(unit.loc,unit)
                         self.units.append(unit.loc)
-                    contacts = self.get_contacts(unit)
-                    if contacts:
-                        chosen_target = unit.choose_target(contacts)
-                        unit.hit(chosen_target)
-                if self.winner:
-                    return
+                        contacts = self.get_contacts(unit)
+                if contacts:
+                    chosen_target = unit.choose_target(contacts)
+                    unit.hit(chosen_target)
+            #if self.winner:
+            #    return
             self.round += 1
     
     def main(self, rounds):
@@ -216,7 +215,7 @@ class Simulation:
         hitpoints = 0
         for loc in self.units:
             hitpoints += self.unit_at(loc).hp
-        if self.elves:
+        if self.elves > self.goblins:
             winner = "Elves"
         else:
             winner = "Goblins"
