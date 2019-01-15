@@ -42,3 +42,29 @@ Then I should get the following ranges:
 | 5 | 2 |
 | 1 | 3 |
 | 3 | 3 |
+
+Scenario: contacts
+Given the starting state
+"""
+#######
+#EG.G.#
+#...#.#
+#.G.#G#
+#######
+"""
+When I parse
+And I determine order
+And I identify targets for first unit
+And I identify ranges for each target
+Then I should get the following ranges:
+|x:d|y:d|
+| 3 | 1 |
+| 5 | 1 |
+| 2 | 2 |
+| 5 | 2 |
+| 1 | 3 |
+| 3 | 3 |
+And I should get the following contacts:
+|x:d|y:d|
+| 2 | 1 |
+

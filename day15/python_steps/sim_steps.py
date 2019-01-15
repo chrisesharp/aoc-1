@@ -74,7 +74,7 @@ def step_impl(context):
 
 @when(u'I identify ranges for each target')
 def step_impl(context):
-    context.ranges = context.player.find_ranges(context.targets)
+    context.ranges, context.contacts = context.player.find_ranges(context.targets)
 
 @then(u'I should get the following ranges')
 def step_impl(context):
@@ -83,6 +83,14 @@ def step_impl(context):
         y = int(row[1])
         assert (x,y) in context.ranges
 
+@then(u'I should get the following contacts')
+def step_impl(context):
+    for row in context.table:
+        x = int(row[0])
+        y = int(row[1])
+        print(x,y, context.contacts)
+        assert (x,y) in context.contacts
+        
 @when(u'I calculate if I can reach the targets')
 def step_impl(context):
     context.reachable = {}
@@ -117,7 +125,12 @@ def step_impl(context):
 
 @when(u'I calculate the closest')
 def step_impl(context):
-    context.closest = context.player.find_closest_targets(context.ranges)
+    if context.contacts:
+        print("contacts:",context.contacts)
+        context.closest = context.contacts
+    else:
+        context.closest = context.player.find_closest_targets(context.ranges)
+    print("Context.closest:", context.closest)
 
 
 @then(u'I should get the following locations')
@@ -138,3 +151,25 @@ def step_impl(context, x1, y1, x2, y2):
     print("chosen:",context.chosen_target)
     assert context.chosen_target == (x1,y1)
     assert context.closest[context.chosen_target][0] == (x2,y2)
+
+
+@when(u'I hit the chosen target')
+def step_impl(context):
+    context.player.hit(context.chosen_target)
+
+
+@then(u'the unit at {x:d},{y:d} should have {hp:d} hitpoints')
+def step_impl(context, x, y, hp):
+    unit = context.sim.unit_at((x,y))
+    print("hits:",unit.hp)
+    assert unit.hp == hp
+
+@then(u'the unit at {x:d},{y:d} should be dead')
+def step_impl(context, x, y):
+    assert not context.sim.unit_at((x,y))
+
+@when(u'I set the unit at {x:d},{y:d} has {hp:d} hitpoints')
+def step_impl(context, x, y, hp):
+    unit = context.sim.unit_at((x,y))
+    unit.hp = hp
+    

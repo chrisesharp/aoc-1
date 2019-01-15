@@ -81,3 +81,21 @@ Then I should get the following locations:
 | 2 | 2 |
 | 3 | 1 |
 | 1 | 3 |
+
+Scenario: contacts in reach
+Given the starting state
+"""
+#######
+#EG.G.#
+#...#.#
+#.G.#G#
+#######
+"""
+When I parse
+And I determine order
+And I identify targets for first unit
+And I identify ranges for each target
+And I calculate the closest
+Then I should get the following locations:
+|x:d|y:d|
+| 2 | 1 |
