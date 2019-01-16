@@ -7,6 +7,9 @@ class Unit:
         self.atk = 3
         self.hp = 200
     
+    def is_alive(self):
+        return self.hp > 0
+
     def __str__(self):
         return self.race
     
@@ -19,20 +22,17 @@ class Unit:
         return hash(tuple(sorted(self.__dict__.items())))
     
     def find_targets(self, units):
-        targets = list(filter(lambda x: x.race != self.race, units))
-        if not targets:
-            self.sim.winner = True
-        return targets
-    
+        return [x for x in units if x.is_alive() and x.race != self.race]
+
+
     def find_ranges(self, targets):
-        contacts = self.sim.get_contacts(self)
-        
-        ranges = []
+        ranges = set()
         for target in targets:
-            adjacents = self.sim.get_clear_space(target.loc)
-            ranges.extend(adjacents)
-        return ranges, contacts
-    
+            for loc in self.sim.get_adjacents(target.loc):
+                if self.loc == loc or not self.sim.is_occupied(loc):
+                    ranges.add(loc)
+        return ranges
+
     def set_sim(self, sim):
         self.sim = sim
     
@@ -56,62 +56,76 @@ class Unit:
                 spaces = spaces.union(new_spaces)
         return spaces
     
-    def find_closest_targets(self, targets):
-        available_spaces = self.available_space(self.loc)
-        reachable_targets = []
-        for target in targets:
-            if self.is_reachable(target, available_spaces):
-                reachable_targets.append(target)
-        targets_distance = {}
-        for target in sorted(reachable_targets, key=lambda x: (x[1],x[0])):
-            targets_distance[target] = self.sim.find_paths(self.loc, target)
+    def find_reachable_targets(self, targets):
+        open = []
+        closed = set()
+        seen = []
+        reachable = []
+        shortest_distance = 9999
+        
+        open.append((self.loc, 0, None))
+        while open:
+            target, dist, parent = open.pop(0)
+            
+            if dist > shortest_distance:
+                continue
+            
+            if target in targets:
+                reachable.append((target, dist, parent))
+                shortest_distance = dist
+            
+            cell = (target, dist, parent)
+            if cell not in closed:
+                closed.add(cell)
+            
+            if target in seen:
+                continue
+            seen.append(target)
+            
+            if target != self.loc and self.sim.is_occupied(target):
+                continue
+            
+            for pos in self.sim.get_adjacents(target):
+                open.append((pos, dist + 1, target))
+        
+        return reachable, closed
+                
+        
+    def find_closest_target(self, targets):
+        reachable, closed = self.find_reachable_targets(targets)
+        if not reachable:
+            return None
+        
+        min_dist, chosen = self.choose_closest_target(reachable)
+        return self.choose_best_path(min_dist, chosen, closed)
 
-        min_path_length = 99
-        shortest = {}
-        for (target, paths) in targets_distance.items():
-            min_target_path_length = 99
-            for path in sorted(paths, key=lambda x: len(x)):
-                if len(path) <= min_path_length:
-                    min_path_length = len(path)
-                    if len(path) < min_target_path_length:
-                        min_target_path_length = len(path)
-                        shortest[target]=path
-                    elif len(path) == min_target_path_length:
-                        existing = shortest[target][0]
-                        this = path[0]
-                        if (this[1],this[0]) < (existing[1],existing[0]):
-                            shortest[target]=path
-                    else:
-                        break
 
-        shortest2={}
-        for path in (sorted(shortest.items(), key=lambda x: len(x[1]) )):
-            if len(path[1]) <= min_path_length:
-                min_path_length = len(path[1])
-                shortest2[path[0]]=path[1]
-            else:
-                break
-
-        return shortest2
+    def choose_closest_target(self, reachable):
+        min_dist = min(x[1] for x in reachable)
+        min_reachable = sorted([x[0] for x in reachable if x[1] == min_dist],
+                               key=lambda x: (x[1], x[0]))
+        return min_dist, min_reachable[0]
     
-    def choose_target(self, targets):
-        if targets:
-            return list(targets.keys())[0]
-        return None
+    def choose_best_path(self, min_dist, chosen, closed):
+        parents = [x for x in closed if x[0] == chosen and x[1] == min_dist]
+        while min_dist > 1:
+            min_dist -= 1
+            new_parents = []
+            for _, _, p in parents:
+                new_parents.extend(x for x in closed
+                                   if x[0] == p and x[1] == min_dist)
+            parents = new_parents
+        return sorted(set(x[0] for x in parents),
+                         key=lambda x: (x[1], x[0]))[0]
     
-    def hit(self, target):
-        opponent = self.sim.unit_at(target)
+    def attack(self):
+        targets = list(self.sim.get_contacts(self).values())
+        return targets[0].occupier
+        
+    def hit(self, opponent):
+        target = opponent.loc
         opponent.hp -= self.atk
         if opponent.hp <= 0:
-            self.sim.units.remove(target)
-            self.sim.field[target] = Cell(target)
-            if opponent.race == "G":
-                self.sim.goblins-=1
-                if self.sim.goblins==0:
-                    self.sim.winner=True
-            else:
-                self.sim.elves-=1
-                if self.sim.elves==0:
-                    self.sim.winner=True
+            self.sim.kill(opponent)
 
     

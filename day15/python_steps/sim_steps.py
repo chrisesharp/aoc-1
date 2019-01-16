@@ -52,20 +52,17 @@ def step_impl(context, x, y):
 
 @when(u'I identify targets for first unit')
 def step_impl(context):
-    units = context.sim.turn_order()
-    context.player = units[0]
-    context.player.set_sim(context.sim)
-    context.targets = context.player.find_targets(units)
+    context.player = context.sim.turn_order()[0]
+    context.targets = context.player.find_targets(context.sim.turn_order())
 
 @when(u'I identify targets for last unit')
 def step_impl(context):
-    units = context.sim.turn_order()
-    context.player = units.pop()
-    context.player.set_sim(context.sim)
-    context.targets = context.player.find_targets(units)
+    context.player = context.sim.turn_order().pop()
+    context.targets = context.player.find_targets(context.sim.turn_order())
 
 @then(u'I should get the following targets')
 def step_impl(context):
+    print("context.targets:",context.targets)
     for row in context.table:
         race = row[0]
         x = int(row[1])
@@ -74,10 +71,11 @@ def step_impl(context):
 
 @when(u'I identify ranges for each target')
 def step_impl(context):
-    context.ranges, context.contacts = context.player.find_ranges(context.targets)
+    context.ranges = context.player.find_ranges(context.targets)
 
 @then(u'I should get the following ranges')
 def step_impl(context):
+    print("context.ranges:",context.ranges)
     for row in context.table:
         x = int(row[0])
         y = int(row[1])
@@ -88,8 +86,8 @@ def step_impl(context):
     for row in context.table:
         x = int(row[0])
         y = int(row[1])
-        print(x,y, context.contacts)
-        assert (x,y) in context.contacts
+        print(x,y, context.ranges)
+        assert (x,y) in context.ranges
         
 @when(u'I calculate if I can reach the targets')
 def step_impl(context):
@@ -125,11 +123,8 @@ def step_impl(context):
 
 @when(u'I calculate the closest')
 def step_impl(context):
-    if context.contacts:
-        print("contacts:",context.contacts)
-        context.closest = context.contacts
-    else:
-        context.closest = context.player.find_closest_targets(context.ranges)
+    context.reachable, _ = context.player.find_reachable_targets(context.ranges)
+    context.closest = set([x[0] for x in context.reachable])
     print("Context.closest:", context.closest)
 
 
@@ -140,22 +135,21 @@ def step_impl(context):
         x = int(row[0])
         y = int(row[1])
         expected_closest.add((x,y))
-    assert expected_closest == context.closest.keys()
+    assert expected_closest == context.closest
 
 @when(u'I choose the target from the closest')
 def step_impl(context):
-    context.chosen_target = context.player.choose_target(context.closest)
+    context.chosen_target = context.player.find_closest_target(context.closest)
 
-@then(u'I should choose {x1:d},{y1:d} and move to {x2:d},{y2:d}')
-def step_impl(context, x1, y1, x2, y2):
+@then(u'I should move to {x:d},{y:d}')
+def step_impl(context, x, y):
     print("chosen:",context.chosen_target)
-    assert context.chosen_target == (x1,y1)
-    assert context.closest[context.chosen_target][0] == (x2,y2)
+    assert context.chosen_target == (x,y)
 
 
 @when(u'I hit the chosen target')
 def step_impl(context):
-    context.player.hit(context.chosen_target)
+    context.player.hit(context.player.attack())
 
 
 @then(u'the unit at {x:d},{y:d} should have {hp:d} hitpoints')

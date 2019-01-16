@@ -19,7 +19,7 @@ And I identify targets for first unit
 And I identify ranges for each target
 And I calculate the closest
 And I choose the target from the closest
-Then I should choose 3,1 and move to 2,1
+Then I should move to 2,1
 
 Scenario: choosing closest for last
 Given the starting state
@@ -38,4 +38,4 @@ And I identify targets for last unit
 And I identify ranges for each target
 And I calculate the closest
 And I choose the target from the closest
-Then I should choose 7,2 and move to 5,5
+Then I should move to 5,5

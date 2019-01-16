@@ -98,4 +98,4 @@ And I identify ranges for each target
 And I calculate the closest
 Then I should get the following locations:
 |x:d|y:d|
-| 2 | 1 |
+| 1 | 1 |

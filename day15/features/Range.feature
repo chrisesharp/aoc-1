@@ -58,13 +58,11 @@ And I identify targets for first unit
 And I identify ranges for each target
 Then I should get the following ranges:
 |x:d|y:d|
+| 1 | 1 |
 | 3 | 1 |
 | 5 | 1 |
 | 2 | 2 |
 | 5 | 2 |
 | 1 | 3 |
 | 3 | 3 |
-And I should get the following contacts:
-|x:d|y:d|
-| 2 | 1 |
 
