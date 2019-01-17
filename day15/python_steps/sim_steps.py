@@ -53,12 +53,12 @@ def step_impl(context, x, y):
 @when(u'I identify targets for first unit')
 def step_impl(context):
     context.player = context.sim.turn_order()[0]
-    context.targets = context.player.find_targets(context.sim.turn_order())
+    context.targets = context.sim.find_targets(context.player)
 
 @when(u'I identify targets for last unit')
 def step_impl(context):
     context.player = context.sim.turn_order().pop()
-    context.targets = context.player.find_targets(context.sim.turn_order())
+    context.targets = context.sim.find_targets(context.player)
 
 @then(u'I should get the following targets')
 def step_impl(context):
@@ -71,7 +71,7 @@ def step_impl(context):
 
 @when(u'I identify ranges for each target')
 def step_impl(context):
-    context.ranges = context.player.find_ranges(context.targets)
+    context.ranges = context.sim.find_ranges(context.player, context.targets)
 
 @then(u'I should get the following ranges')
 def step_impl(context):
@@ -88,42 +88,18 @@ def step_impl(context):
         y = int(row[1])
         print(x,y, context.ranges)
         assert (x,y) in context.ranges
-        
-@when(u'I calculate if I can reach the targets')
-def step_impl(context):
-    context.reachable = {}
-    for target in context.ranges:
-        context.reachable[target]=context.player.is_reachable(target)
     
 @then(u'I should get the following reachable ranges')
 def step_impl(context):
     for row in context.table:
         x = int(row[0])
         y = int(row[1])
-        reachable = row[2]
-        assert str(context.reachable[(x,y)]) == str(reachable)
-
-@when(u'I calculate the available spaces for {x:d},{y:d}')
-def step_impl(context, x, y):
-    unit = context.sim.unit_at((x,y))
-    unit.set_sim(context.sim)
-    context.available_spaces = unit.available_space((x,y))
-
-@then(u'I should get spaces')
-def step_impl(context):
-    expected_spaces = set()
-    for row in context.table:
-        x = int(row[0])
-        y = int(row[1])
-        expected_spaces.add((x,y))
-    print("expcted:", expected_spaces)
-    print("avail:", context.available_spaces )
-    assert expected_spaces == context.available_spaces
+        assert (x,y) in context.reachable
 
 
 @when(u'I calculate the closest')
 def step_impl(context):
-    context.reachable, _ = context.player.find_reachable_targets(context.ranges)
+    context.reachable, _ = context.sim.find_reachable_targets(context.player, context.ranges)
     context.closest = set([x[0] for x in context.reachable])
     print("Context.closest:", context.closest)
 
@@ -139,7 +115,7 @@ def step_impl(context):
 
 @when(u'I choose the target from the closest')
 def step_impl(context):
-    context.chosen_target = context.player.find_closest_target(context.closest)
+    context.chosen_target = context.sim.find_closest_target(context.player, context.closest)
 
 @then(u'I should move to {x:d},{y:d}')
 def step_impl(context, x, y):
@@ -149,8 +125,8 @@ def step_impl(context, x, y):
 
 @when(u'I hit the chosen target')
 def step_impl(context):
-    context.player.hit(context.player.attack())
-
+    casualty = context.player.hit(context.player.attack(context.sim.get_units_in_contact(context.player)))
+    context.sim.kill(casualty)
 
 @then(u'the unit at {x:d},{y:d} should have {hp:d} hitpoints')
 def step_impl(context, x, y, hp):

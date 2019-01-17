@@ -23,8 +23,10 @@ class Simulation:
         self.unit_order = None
         self.round = 0
         self.current_unit = None
-        self.FPS = 1/50
+        self.FPS = 0
         self.count = 0
+        self.reboot=False
+        self.elf_atk = 3
         
     
     def parse(self):
@@ -40,6 +42,7 @@ class Simulation:
                     self.units.append((x,y))
                     occupier = Unit((x,y),token)
                     occupier.set_sim(self)
+                    occupier.atk = self.elf_atk
                     self.elves+=1
                 if token == "G":
                     self.units.append((x,y))
@@ -57,6 +60,7 @@ class Simulation:
         output = CLR
         output += "Round: " + str(self.round) + "\tElves:" + str(self.elves) 
         output += ", Goblins:" + str(self.goblins) + "\t" + str(self.count) + "\n" 
+        output += "Elf attack power: " + str(self.elf_atk) + "\n"
         if current:
             output += "Current unit: " + str(current) + "\n"
         for y in range(self.rows):
@@ -87,6 +91,7 @@ class Simulation:
         output += winner + " win with " + str(hitpoints) + " total hit points left\n"
         output += "Outcome: " + str(self.round) + " * " 
         output += str(hitpoints) + " = " + str(hitpoints * self.round)+"\n"
+        output += "Final attack power: " + str(self.elf_atk) + "\n"
         return output
     
     def dimensions(self):
@@ -97,14 +102,7 @@ class Simulation:
             return self.field.get(loc).occupier
         return None
     
-    def get_clear_space(self, target):
-        adjacents = set()
-        for loc in self.get_adjacents(target):
-            if not self.is_occupied(loc):
-                adjacents.add(loc)
-        return adjacents
-    
-    def get_contacts(self, unit):
+    def get_units_in_contact(self, unit):
         contacts = None
         for loc in self.get_adjacents(unit.loc):
             if loc in self.units:
@@ -115,13 +113,6 @@ class Simulation:
         if contacts:
             contacts = dict(sorted(contacts.items(), key=lambda x: (x[1].occupier.hp,x[1].loc[1],x[1].loc[0])))
         return contacts
-        
-    def get_clear_cells(self, target):
-        adjacents = set()
-        for loc in self.get_adjacents(target.loc):
-            if not self.is_occupied(loc):
-                adjacents.add(self.field[loc])
-        return adjacents
     
     def wall_at(self, loc):
         return loc in self.walls
@@ -156,6 +147,8 @@ class Simulation:
         return loc in self.units or loc in self.walls
     
     def kill(self, unit):
+        if not unit:
+            return
         target = unit.loc
         self.units.remove(target)
         self.field[target] = Cell(target)
@@ -163,45 +156,121 @@ class Simulation:
             self.goblins-=1
         else:
             self.elves-=1
+            if self.pt2:
+                self.elf_atk+=1
+                self.reboot=True
 
     def still_turns_to_play(self, rounds):
         return (rounds - self.round) != 0
+        
+    def find_targets(self, unit):
+        return [x for x in self.turn_order() if x.is_alive() and x.race != unit.race]
     
-    def unit_turn(self, unit):
+    def find_ranges(self, unit, targets):
+        ranges = set()
+        for target in targets:
+            for loc in self.get_adjacents(target.loc):
+                if unit.loc == loc or not self.is_occupied(loc):
+                    ranges.add(loc)
+        return ranges
+
+    def find_reachable_targets(self, unit, targets):
+        open = []
+        closed = set()
+        seen = []
+        reachable = []
+        shortest_distance = 9999
+        
+        open.append((unit.loc, 0, None))
+        while open:
+            target, dist, parent = open.pop(0)
+            
+            if dist > shortest_distance:
+                continue
+            
+            if target in targets:
+                reachable.append((target, dist))
+                shortest_distance = dist
+            
+            cell = (target, dist, parent)
+            if cell not in closed:
+                closed.add(cell)
+            
+            if target in seen:
+                continue
+            seen.append(target)
+            
+            if target != unit.loc and self.is_occupied(target):
+                continue
+            
+            for loc in self.get_adjacents(target):
+                open.append((loc, dist + 1, target))
+        
+        return reachable, closed
+
+    def choose_best_path(self, closest, paths):
+        (min_dist, chosen) = closest
+        parents = [x for x in paths if x[0] == chosen and x[1] == min_dist]
+        while min_dist > 1:
+            min_dist -= 1
+            new_parents = []
+            for _, _, p in parents:
+                new_parents.extend(x for x in paths
+                                   if x[0] == p and x[1] == min_dist)
+            parents = new_parents
+        return sorted(set(x[0] for x in parents),key=lambda x: (x[1], x[0]))[0]
+
+    def find_closest_target(self, unit, targets):
+        reachable_targets, paths = self.find_reachable_targets(unit, targets)
+        if not reachable_targets:
+            return None
+        closest = self.choose_closest_target(reachable_targets)
+        return self.choose_best_path(closest, paths)
+        
+    def choose_closest_target(self, reachable):
+        min_dist = min(x[1] for x in reachable)
+        min_reachable = sorted([x[0] for x in reachable if x[1] == min_dist],
+                               key=lambda x: (x[1], x[0]))
+        return (min_dist, min_reachable[0])
+        
+    def play_turn(self, unit):
         if not unit.is_alive():
             return True
-            
-        targets = unit.find_targets(self.turn_order())
+
+        targets = self.find_targets(unit)
         if not targets:
             return False
+        #print(self.render(unit.loc,[[targets]]))
             
-        ranges = unit.find_ranges(targets)
+        ranges = self.find_ranges(unit, targets)
         if not ranges:
-            return True
-            
-        if unit.loc in ranges:
-            chosen_target = unit.attack()
-            unit.hit(chosen_target)
             return True
         
         #print(self.render(unit.loc,[[ranges]]))
-        reachable, closed = unit.find_reachable_targets(ranges)
-        if not reachable:
+        if unit.loc in ranges:
+            chosen_target = unit.attack(self.get_units_in_contact(unit))
+            casualty = unit.hit(chosen_target)
+            if casualty:
+                self.kill(casualty)
             return True
-        #print(self.render(unit.loc,[reachable]))
-        min_dist, chosen = unit.choose_closest_target(reachable)
-        chosen_target = unit.choose_best_path(min_dist, chosen, closed)
-        contacts=None
+
+        chosen_target = self.find_closest_target(unit, ranges)
+        if not chosen_target:
+            return True
+            
+        contacts = None
         if chosen_target:
             self.units.remove(unit.loc)
             self.field[unit.loc] = Cell(unit.loc)
             unit.loc = chosen_target
             self.field[unit.loc] = Cell(unit.loc,unit)
             self.units.append(unit.loc)
-            contacts = self.get_contacts(unit)
+            contacts = self.get_units_in_contact(unit)
         if contacts:
-            chosen_target = unit.attack()
-            unit.hit(chosen_target)
+            chosen_target = unit.attack(contacts)
+            casualty = unit.hit(chosen_target)
+            if casualty:
+                self.kill(casualty)
         return True
     
     def move_unit(self, unit, destination):
@@ -212,21 +281,36 @@ class Simulation:
         self.units.append(unit.loc)
         return unit
         
-    def combat(self, rounds):
+    def resolve_combat(self, rounds):
+        self.reboot=False
         while self.still_turns_to_play(rounds):
             print(self.render())
             for unit in self.determine_order():
-                #print(self.render([[[unit.loc]]]))
-                print(self.render())
-                if not self.unit_turn(unit):
-                    return
+                if not self.play_turn(unit):
+                    return False
+                if self.reboot:
+                    return True
             self.round += 1
-
-    def main(self, rounds):
+    
+    def reset_battle(self):
+        self.units = []
+        self.elves = 0
+        self.goblins = 0
+        self.walls = []
+        self.field = {}
+        self.round = 0
+        self.reboot=False
         self.parse()
-        self.combat(rounds)
+
+    def main(self, rounds, pt2=False):
+        self.pt2=pt2
+        if pt2:
+            self.elf_atk = 4
+        self.parse()
+        while self.resolve_combat(rounds):
+            self.reset_battle()
+            pass
         print(self.render([]))
-        hitpoints = 0
         print(self.summary())
 
 if __name__ == "__main__":
@@ -238,6 +322,6 @@ if __name__ == "__main__":
     with open(file, 'r') as myfile:
         input = myfile.read()
     sim = Simulation(input)
-    sim.main(max_rounds)
+    sim.main(max_rounds, False)
 
         
