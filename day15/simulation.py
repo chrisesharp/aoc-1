@@ -22,7 +22,6 @@ class Simulation:
         self.field = {}
         self.unit_order = None
         self.round = 0
-        self.current_unit = None
         self.FPS = 0
         self.count = 0
         self.reboot=False
