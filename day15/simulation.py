@@ -41,13 +41,11 @@ class Simulation:
                 if token == "E":
                     self.units.append((x,y))
                     occupier = Unit((x,y),token)
-                    occupier.set_sim(self)
                     occupier.atk = self.elf_atk
                     self.elves+=1
                 if token == "G":
                     self.units.append((x,y))
                     occupier = Unit((x,y),token)
-                    occupier.set_sim(self)
                     self.goblins+=1
                 if token == "#":
                     self.walls.append((x,y))

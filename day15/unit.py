@@ -17,12 +17,6 @@ class Unit:
         if isinstance(other, Unit):
             return self.loc == other.loc and self.race == other.race
         return False
-    
-    def __hash__(self):
-        return hash(tuple(sorted(self.__dict__.items())))
-    
-    def set_sim(self, sim):
-        self.sim = sim
 
     def attack(self, group):
         targets = list(group.values())
