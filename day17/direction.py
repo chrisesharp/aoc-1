@@ -7,6 +7,7 @@ class Direction(IntEnum):
     RIGHT = 2
     DOWN = 3
 
+
 def next_location(coords, direction):
     return {
         Direction.LEFT: lambda coords: ((coords[0] - 1),
@@ -19,11 +20,14 @@ def next_location(coords, direction):
                                         (coords[1] + 1))
         }[direction](coords)
 
+
 def below(coords):
-    return  ((coords[0], coords[1]+1))
+    return ((coords[0], coords[1] + 1))
+
 
 def above(coords):
-    return  ((coords[0], coords[1]-1))
-    
+    return ((coords[0], coords[1] - 1))
+
+
 def opposite(direction):
     return Direction((direction + 2) % 4)

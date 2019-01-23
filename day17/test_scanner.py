@@ -1,9 +1,11 @@
 from ground_scanner import Scanner
 
+
 def test_bounds():
     file = open("test1.txt", "r")
     scanner = Scanner(file)
-    assert scanner.dimensions() == ((495,506),(0,13))
+    assert scanner.dimensions() == ((495, 506), (1, 13))
+
 
 def test_render():
     file = open("test1.txt", "r")
