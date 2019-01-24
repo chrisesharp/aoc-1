@@ -23,9 +23,6 @@ class Drop:
 
     def next(self):
         self.loc = next_location(self.loc, self.dir)
-        if self.container_lip:
-            if self.container_lip[1] == self.loc[1]:
-                self.token = "|"
 
     def down(self):
         self.dir = Direction.DOWN

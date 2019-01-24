@@ -66,10 +66,6 @@ class Scanner:
                 else:
                     output += token
             output += "\n"
-        output += str(drop.loc) + \
-            "," + str(drop.dir) + \
-            "," + str(drop.origin) + \
-            "," + str(drop.reflection) + "\n"
         return output
 
     def render(self, drops={}):
