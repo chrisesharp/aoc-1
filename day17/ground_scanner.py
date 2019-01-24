@@ -1,6 +1,7 @@
 from time import sleep
 from direction import Direction, next_location, below, above
 from droplet import Drop
+import curses
 
 CLR = "\u001B[H" + "\u001B[2J"
 BLUE = "\u001B[34m"
@@ -18,7 +19,7 @@ class Scanner:
         self.spring = (500, 0)
         self.ground = {}
         self.ground[self.spring] = "+"
-        self.FPS = 1/100
+        self.FPS = 0
         self.animate = False
         self.lips = []
         self.parse(file)
@@ -60,36 +61,47 @@ class Scanner:
         y_range = self.y_min, self.y_max
         return (x_range, y_range)
 
-    def animate_flow(self, droplets):
+    def animate_flow(self, screen, droplets):
         if not self.animate:
             return
         if droplets:
             drops = sorted(enumerate(droplets), key=lambda x: x[1].id)
             first_drop = list(drops)[0][1]
-            print(self.render_window(first_drop))
+            self.render_window(screen, first_drop)
         sleep(self.FPS)
 
-    def render_window(self, drop):
-        output = CLR + "\n"
-        orig_x, orig_y = drop.loc
-        if orig_x < (self.window[0] + 25):
+    def render_window(self, screen, drop):
+        x, y = drop.loc
+        left_buf = int(self.screen_width / 4)
+        right_buf = left_buf * 3
+        top_buf = int(self.screen_height / 4)
+        bottom_buf = top_buf * 2
+
+        if x < (self.window[0] + left_buf):
             self.window[0] -= 1
-        elif orig_x > (self.window[0] + 75):
+        elif x > (self.window[0] + right_buf):
             self.window[0] += 1
-        if orig_y < (self.window[1] + 10):
+        if y < (self.window[1] + top_buf):
             self.window[1] -= 1
-        elif orig_y > (self.window[1] + 20):
+        elif y > (self.window[1] + bottom_buf):
             self.window[1] += 1
 
-        for y in range(self.window[1] - 15, self.window[1] + 25):
-            for x in range(self.window[0], self.window[0] + 100):
+        y_start = self.window[1] - 15
+        x_start = self.window[0]
+
+        for y in range(y_start, y_start + self.screen_height):
+            for x in range(x_start, x_start + self.screen_width):
                 token = self.ground.get((x, y), ".")
+                x1 = x - x_start
+                y1 = y - y_start
                 if token in ["~", "|"]:
-                    output += COLOUR_ON + token + COLOUR_OFF
+                    screen.addch(y1, x1, ord(token), curses.color_pair(1))
+                elif token in ["#"]:
+                    screen.addch(y1, x1, ord(token), curses.color_pair(2))
                 else:
-                    output += token
-            output += "\n"
-        return output
+                    screen.addch(y1, x1, ord(token), curses.A_REVERSE)
+        screen.refresh()
+        return
 
     def render(self, drops={}):
         output = "\n"
@@ -105,14 +117,23 @@ class Scanner:
             output += line + "\n"
         return output
 
-    def flow(self, droplets):
+    def init_screen(self, screen):
+        screen.clear()
+        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_RED)
+        self.screen_width = curses.COLS - 1
+        self.screen_height = curses.LINES - 1
+
+    def flow(self, screen, droplets):
+        self.init_screen(screen)
         while (droplets):
             new_droplets = set()
             for drop in droplets:
                 drips = self.drip(drop)
                 new_droplets.update(drips)
             droplets = set(new_droplets)
-            self.animate_flow(droplets)
+            self.animate_flow(screen, droplets)
+        screen.getkey()
 
     def drip(self, drop):
         surrounding = self.surrounding(drop)
@@ -208,7 +229,7 @@ class Scanner:
         self.animate = animate
 
         droplets = {Drop(below(self.spring), Direction.DOWN)}
-        self.flow(droplets)
+        curses.wrapper(self.flow, droplets)
 
         print("Calculating water (Part1):")
         water = self.count_water(["~", "|"])
