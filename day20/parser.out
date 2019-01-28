@@ -1,0 +1,233 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> pattern
+Rule 1     pattern -> concat
+Rule 2     pattern -> pattern OR concat
+Rule 3     concat -> term
+Rule 4     concat -> concat term
+Rule 5     term -> DIR
+Rule 6     term -> <empty>
+Rule 7     term -> LPAREN pattern RPAREN
+
+Terminals, with rules where they appear
+
+DIR                  : 5
+LPAREN               : 7
+OR                   : 2
+RPAREN               : 7
+error                : 
+
+Nonterminals, with rules where they appear
+
+concat               : 1 2 4
+pattern              : 2 7 0
+term                 : 3 4
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . pattern
+    (1) pattern -> . concat
+    (2) pattern -> . pattern OR concat
+    (3) concat -> . term
+    (4) concat -> . concat term
+    (5) term -> . DIR
+    (6) term -> .
+    (7) term -> . LPAREN pattern RPAREN
+
+  ! shift/reduce conflict for DIR resolved as shift
+  ! shift/reduce conflict for LPAREN resolved as shift
+    DIR             shift and go to state 4
+    OR              reduce using rule 6 (term -> .)
+    $end            reduce using rule 6 (term -> .)
+    LPAREN          shift and go to state 5
+
+  ! DIR             [ reduce using rule 6 (term -> .) ]
+  ! LPAREN          [ reduce using rule 6 (term -> .) ]
+
+    pattern                        shift and go to state 1
+    concat                         shift and go to state 2
+    term                           shift and go to state 3
+
+state 1
+
+    (0) S' -> pattern .
+    (2) pattern -> pattern . OR concat
+
+    OR              shift and go to state 6
+
+
+state 2
+
+    (1) pattern -> concat .
+    (4) concat -> concat . term
+    (5) term -> . DIR
+    (6) term -> .
+    (7) term -> . LPAREN pattern RPAREN
+
+  ! shift/reduce conflict for DIR resolved as shift
+  ! reduce/reduce conflict for OR resolved using rule 1 (pattern -> concat .)
+  ! reduce/reduce conflict for $end resolved using rule 1 (pattern -> concat .)
+  ! reduce/reduce conflict for RPAREN resolved using rule 1 (pattern -> concat .)
+  ! shift/reduce conflict for LPAREN resolved as shift
+    OR              reduce using rule 1 (pattern -> concat .)
+    $end            reduce using rule 1 (pattern -> concat .)
+    RPAREN          reduce using rule 1 (pattern -> concat .)
+    DIR             shift and go to state 4
+    LPAREN          shift and go to state 5
+
+  ! DIR             [ reduce using rule 6 (term -> .) ]
+  ! LPAREN          [ reduce using rule 6 (term -> .) ]
+  ! OR              [ reduce using rule 6 (term -> .) ]
+  ! $end            [ reduce using rule 6 (term -> .) ]
+  ! RPAREN          [ reduce using rule 6 (term -> .) ]
+
+    term                           shift and go to state 7
+
+state 3
+
+    (3) concat -> term .
+
+    DIR             reduce using rule 3 (concat -> term .)
+    LPAREN          reduce using rule 3 (concat -> term .)
+    OR              reduce using rule 3 (concat -> term .)
+    $end            reduce using rule 3 (concat -> term .)
+    RPAREN          reduce using rule 3 (concat -> term .)
+
+
+state 4
+
+    (5) term -> DIR .
+
+    DIR             reduce using rule 5 (term -> DIR .)
+    LPAREN          reduce using rule 5 (term -> DIR .)
+    OR              reduce using rule 5 (term -> DIR .)
+    $end            reduce using rule 5 (term -> DIR .)
+    RPAREN          reduce using rule 5 (term -> DIR .)
+
+
+state 5
+
+    (7) term -> LPAREN . pattern RPAREN
+    (1) pattern -> . concat
+    (2) pattern -> . pattern OR concat
+    (3) concat -> . term
+    (4) concat -> . concat term
+    (5) term -> . DIR
+    (6) term -> .
+    (7) term -> . LPAREN pattern RPAREN
+
+  ! shift/reduce conflict for DIR resolved as shift
+  ! shift/reduce conflict for LPAREN resolved as shift
+    DIR             shift and go to state 4
+    RPAREN          reduce using rule 6 (term -> .)
+    OR              reduce using rule 6 (term -> .)
+    LPAREN          shift and go to state 5
+
+  ! DIR             [ reduce using rule 6 (term -> .) ]
+  ! LPAREN          [ reduce using rule 6 (term -> .) ]
+
+    pattern                        shift and go to state 8
+    concat                         shift and go to state 2
+    term                           shift and go to state 3
+
+state 6
+
+    (2) pattern -> pattern OR . concat
+    (3) concat -> . term
+    (4) concat -> . concat term
+    (5) term -> . DIR
+    (6) term -> .
+    (7) term -> . LPAREN pattern RPAREN
+
+  ! shift/reduce conflict for DIR resolved as shift
+  ! shift/reduce conflict for LPAREN resolved as shift
+    DIR             shift and go to state 4
+    OR              reduce using rule 6 (term -> .)
+    $end            reduce using rule 6 (term -> .)
+    RPAREN          reduce using rule 6 (term -> .)
+    LPAREN          shift and go to state 5
+
+  ! DIR             [ reduce using rule 6 (term -> .) ]
+  ! LPAREN          [ reduce using rule 6 (term -> .) ]
+
+    concat                         shift and go to state 9
+    term                           shift and go to state 3
+
+state 7
+
+    (4) concat -> concat term .
+
+    DIR             reduce using rule 4 (concat -> concat term .)
+    LPAREN          reduce using rule 4 (concat -> concat term .)
+    OR              reduce using rule 4 (concat -> concat term .)
+    $end            reduce using rule 4 (concat -> concat term .)
+    RPAREN          reduce using rule 4 (concat -> concat term .)
+
+
+state 8
+
+    (7) term -> LPAREN pattern . RPAREN
+    (2) pattern -> pattern . OR concat
+
+    RPAREN          shift and go to state 10
+    OR              shift and go to state 6
+
+
+state 9
+
+    (2) pattern -> pattern OR concat .
+    (4) concat -> concat . term
+    (5) term -> . DIR
+    (6) term -> .
+    (7) term -> . LPAREN pattern RPAREN
+
+  ! shift/reduce conflict for DIR resolved as shift
+  ! reduce/reduce conflict for OR resolved using rule 2 (pattern -> pattern OR concat .)
+  ! reduce/reduce conflict for $end resolved using rule 2 (pattern -> pattern OR concat .)
+  ! reduce/reduce conflict for RPAREN resolved using rule 2 (pattern -> pattern OR concat .)
+  ! shift/reduce conflict for LPAREN resolved as shift
+    OR              reduce using rule 2 (pattern -> pattern OR concat .)
+    $end            reduce using rule 2 (pattern -> pattern OR concat .)
+    RPAREN          reduce using rule 2 (pattern -> pattern OR concat .)
+    DIR             shift and go to state 4
+    LPAREN          shift and go to state 5
+
+  ! DIR             [ reduce using rule 6 (term -> .) ]
+  ! LPAREN          [ reduce using rule 6 (term -> .) ]
+  ! OR              [ reduce using rule 6 (term -> .) ]
+  ! $end            [ reduce using rule 6 (term -> .) ]
+  ! RPAREN          [ reduce using rule 6 (term -> .) ]
+
+    term                           shift and go to state 7
+
+state 10
+
+    (7) term -> LPAREN pattern RPAREN .
+
+    DIR             reduce using rule 7 (term -> LPAREN pattern RPAREN .)
+    LPAREN          reduce using rule 7 (term -> LPAREN pattern RPAREN .)
+    OR              reduce using rule 7 (term -> LPAREN pattern RPAREN .)
+    $end            reduce using rule 7 (term -> LPAREN pattern RPAREN .)
+    RPAREN          reduce using rule 7 (term -> LPAREN pattern RPAREN .)
+
+WARNING: 
+WARNING: Conflicts:
+WARNING: 
+WARNING: shift/reduce conflict for DIR in state 0 resolved as shift
+WARNING: shift/reduce conflict for LPAREN in state 0 resolved as shift
+WARNING: shift/reduce conflict for DIR in state 2 resolved as shift
+WARNING: shift/reduce conflict for LPAREN in state 2 resolved as shift
+WARNING: shift/reduce conflict for DIR in state 5 resolved as shift
+WARNING: shift/reduce conflict for LPAREN in state 5 resolved as shift
+WARNING: shift/reduce conflict for DIR in state 6 resolved as shift
+WARNING: shift/reduce conflict for LPAREN in state 6 resolved as shift
+WARNING: shift/reduce conflict for DIR in state 9 resolved as shift
+WARNING: shift/reduce conflict for LPAREN in state 9 resolved as shift
+WARNING: reduce/reduce conflict in state 2 resolved using rule (pattern -> concat)
+WARNING: rejected rule (term -> <empty>) in state 2
+WARNING: reduce/reduce conflict in state 9 resolved using rule (pattern -> pattern OR concat)
+WARNING: rejected rule (term -> <empty>) in state 9
