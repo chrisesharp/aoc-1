@@ -54,18 +54,28 @@ class CPU:
     def run(self):
         running = True
         ip = 0
+        reg_zero = self.registers[0]
+        long_running = 0
         while (running):
             instruction = self.fetch(ip)
-            output = "IP=" + str(ip) + str(self.registers)
-            output += self.op_table[instruction[0]].name + str(instruction[1:])
             self.execute(instruction)
-            output += str(self.registers)
-            print(output)
+            if self.registers[0] != reg_zero and long_running > 1000:
+                self.short_cut()
+                break
             if self.ipc >= 0:
                 ip = self.registers[self.ipc]
             ip += 1
             if ip >= len(self.program):
                 running = False
+            long_running += 1
+
+    def short_cut(self):
+        n = self.registers[1]
+        total = 0
+        for i in range(1, n + 1):
+            if n % i == 0:
+                total += i
+        self.registers[0] = total
 
     def addr(self, A, B, C):
         self.registers[C] = self.registers[A] + self.registers[B]
