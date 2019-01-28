@@ -3,10 +3,16 @@ from opcodes import Opcode
 
 class CPU:
     def __init__(self, op_table=None):
-        self.registers = [0, 0, 0, 0]
+        self.registers = [0, 0, 0, 0, 0, 0]
         self.op_table = op_table
         self.program = None
         self.debug = False
+        self.ipc = -1
+
+    def fetch(self, ip):
+        if self.ipc >= 0:
+            self.registers[self.ipc] = ip
+        return [int(x) for x in self.program[ip].split(' ')]
 
     def execute(self, instruction):
         opcode, A, B, C = instruction
@@ -31,10 +37,35 @@ class CPU:
     def load(self, program):
         self.program = program
 
-    def run(self):
+    def assemble(self):
+        assembly = []
         for line in self.program:
-            instruction = [int(x) for x in line.split(' ')]
+            if line.find("#ip", 0) == 0:
+                self.ipc = int(line[4])
+                continue
+            op_name = line[0:4]
+            data = line[4:]
+            optable = self.op_table.items()
+            opc = [(num, op) for (num, op) in optable if op.name == op_name]
+            instruction = str(opc[0][0]) + data
+            assembly.append(instruction)
+        self.program = assembly
+
+    def run(self):
+        running = True
+        ip = 0
+        while (running):
+            instruction = self.fetch(ip)
+            output = "IP=" + str(ip) + str(self.registers)
+            output += self.op_table[instruction[0]].name + str(instruction[1:])
             self.execute(instruction)
+            output += str(self.registers)
+            print(output)
+            if self.ipc >= 0:
+                ip = self.registers[self.ipc]
+            ip += 1
+            if ip >= len(self.program):
+                running = False
 
     def addr(self, A, B, C):
         self.registers[C] = self.registers[A] + self.registers[B]
@@ -146,16 +177,11 @@ def rationalise(opcode_matches, definites):
                 opcode_matches.update({opcode: matches})
 
 
-def main(input, program):
-    print("Part 1:")
+def create_opcode_table(input):
     samples = input.split("\n\n")
 
     opcode_samples = analyse_samples(samples)
-    opcode_matches, count_three_or_more = find_matches(opcode_samples)
-
-    print("Num of samples matching 3 or more ops: ", count_three_or_more)
-    print("===============")
-    print("Part 2:")
+    opcode_matches, _ = find_matches(opcode_samples)
 
     finished = False
     while(not finished):
@@ -166,16 +192,30 @@ def main(input, program):
     for opcode, op in enumerate(definites):
         op_table[opcode] = Opcode[op]
 
+    return op_table
+
+
+def main(input, program):
+    part1 = False
+    op_table = create_opcode_table(input)
     cpu = CPU(op_table)
+
+    print("Part 1:")
     cpu.load(program)
-    cpu.run()
+    cpu.assemble()
+    if part1:
+        cpu.run()
+    else:
+        print("skipping to Part 2:")
+        cpu.registers[0] = 1
+        cpu.run()
 
     print("Answer: ", cpu.registers[0])
 
 
 if __name__ == "__main__":
-    with open("input1.txt", 'r') as myfile:
-        input1 = myfile.read()
-    with open("input2.txt", 'r') as myfile:
-        input2 = myfile.readlines()
-    main(input1, input2)
+    with open("samples.txt", 'r') as myfile:
+        samples = myfile.read()
+    with open("program.txt", 'r') as myfile:
+        program = myfile.readlines()
+    main(samples, program)
