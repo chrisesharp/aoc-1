@@ -52,24 +52,28 @@ class CPU:
         self.program = assembly
 
     def run(self):
-        running = True
         ip = 0
         reg_zero = self.registers[0]
-        long_running = 0
-        while (running):
+        execution_steps = 0
+        while (self.valid_instruction_pointer(ip)):
             instruction = self.fetch(ip)
             self.execute(instruction)
-            if self.registers[0] != reg_zero and long_running > 1000:
-                self.short_cut()
+            if self.program_flow_detected(reg_zero) and \
+                    execution_steps > len(self.program):
+                self.short_cut_part2()
                 break
             if self.ipc >= 0:
                 ip = self.registers[self.ipc]
             ip += 1
-            if ip >= len(self.program):
-                running = False
-            long_running += 1
+            execution_steps += 1
 
-    def short_cut(self):
+    def valid_instruction_pointer(self, ip):
+        return ip < len(self.program)
+
+    def program_flow_detected(self, reg_zero):
+        return self.registers[0] != reg_zero
+
+    def short_cut_part2(self):
         n = self.registers[1]
         total = 0
         for i in range(1, n + 1):
