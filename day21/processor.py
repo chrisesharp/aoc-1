@@ -59,28 +59,49 @@ class CPU:
         while (self.valid_instruction_pointer(ip)):
             instruction = self.fetch(ip)
             self.execute(instruction)
-            # if self.result_compare_called(ip):
-            #     if self.registers[4] != self.registers[0]:
-            #         return execution_steps, True
-            #     else:
-            #         return execution_steps, False
+            if self.result_compare_called(ip):
+                if self.registers[4] != self.registers[0]:
+                    return execution_steps, True
+                else:
+                    return execution_steps, False
             if self.ipc >= 0:
                 ip = self.registers[self.ipc]
-            # if self.op_table[instruction[0]].name == "eqrr":
-            #     if self.registers[4] <= lowest_int and \
-            #             execution_steps >= highest_steps:
-            #         lowest_int = self.registers[4]
-            #         highest_steps = execution_steps
-            #         print("LOWEST", execution_steps, ", reg ", self.registers[4])
+            if self.op_table[instruction[0]].name == "eqrr":
+                print(execution_steps, ", reg ", self.registers[4])
+                if self.registers[4] <= lowest_int and \
+                        execution_steps >= highest_steps:
+                    lowest_int = self.registers[4]
+                    highest_steps = execution_steps
+                    print("LOWEST", execution_steps, ", reg ", self.registers[4])
             ip += 1
             execution_steps += 1
-        return execution_steps
+
+    def run2(self):
+        already_seen = set()
+        cycle = []
+        ip = 0
+        execution_steps = 0
+        while (self.valid_instruction_pointer(ip)):
+            instruction = self.fetch(ip)
+            self.execute(instruction)
+            if self.result_compare_called(ip):
+                if self.registers[4] in already_seen:
+                    print("already seen ",self.registers[4], execution_steps)
+                    return cycle.pop(), execution_steps
+                else:
+                    print("new: ",self.registers[4], "(",len(already_seen), ") over ", execution_steps)
+                    already_seen.add(self.registers[4])
+                    cycle.append(self.registers[4])
+            if self.ipc >= 0:
+                ip = self.registers[self.ipc]
+            ip += 1
+            execution_steps += 1
+        return self.registers[4], execution_steps
 
     def valid_instruction_pointer(self, ip):
         return ip < len(self.program)
 
     def result_compare_called(self, ip):
-        # return False
         return ip == 28
 
     def addr(self, A, B, C):
@@ -221,7 +242,7 @@ def main(input, program):
     if part1:
         print("Part 1:")
         searching = True
-        start = 0
+        start = 7120000
         while (searching):
             cpu.registers = [start, 0, 0, 0, 0, 0]
             steps, searching = cpu.run()
@@ -232,9 +253,10 @@ def main(input, program):
             start += 1
     else:
         print("Part 2:")
-        start = 4120
+        #start = 4120
+        start = 0
         cpu.registers = [start, 0, 0, 0, 0, 0]
-        steps = cpu.run()
+        start, steps = cpu.run2()
         print("start = ", start, ", steps = ", steps)
 
     print("Answer: ", cpu.registers[0])

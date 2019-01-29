@@ -4,7 +4,7 @@ from array import array
 class Scanner:
     def __init__(self):
         self.w = 26
-        self.h = 250;
+        self.h = 250
         self.codes = [[0 for x in range(self.w)] for y in range(self.h)] 
         pass
         
