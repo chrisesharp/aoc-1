@@ -28,6 +28,9 @@ def react(input, accumulator=""):
 
 def main(file):
     input = open(file, "r").readline().strip()
+    print("Part 1:")
+    print("Units remaining: ", len(react(input)))
+    print("Part 2:")
     output = transform(input)
     print("units left: ",len(output))
 
