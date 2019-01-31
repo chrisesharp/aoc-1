@@ -6,6 +6,7 @@ class Caver:
     def __init__(self, cave):
         self.cave = cave
         self.costs = {}
+        self.start = ((0,0), Equipment.torch)
 
     def heuristic(self, step):
         (x1, y1) = self.cave.target
@@ -31,13 +32,13 @@ class Caver:
         return current == self.cave.target and equipment == Equipment.torch
     
     def search(self):
-        start = ((0,0),Equipment.torch)
+        start = self.start
         search = PriorityQueue()
         search.put(start, 0)
         time_so_far = {}
-        came_from = {}
+        trail = {}
         time_so_far[start] = 0
-        came_from[start] = None
+        trail[start] = None
 
         while not search.empty():
             current, holding = search.get_item()
@@ -51,23 +52,23 @@ class Caver:
                         time_so_far[(next, item)] = new_time
                         priority = new_time + self.heuristic(next)
                         search.put((next, item), priority)
-                        came_from[(next, item)] = (current, holding)
-        return time_so_far, came_from
+                        trail[(next, item)] = (current, holding)
+        return time_so_far, trail
     
-    def reconstruct_path(self, came_from):
-        start = ((0,0), Equipment.torch)
+    def reconstruct_path(self, trail):
+        start = self.start
         current = (self.cave.target, Equipment.torch)
         path = []
         while current != start:
             path.append(current)
-            current = came_from[current]
+            current = trail[current]
         path.append(start)
         path.reverse()
         return path
 
     def find_target(self):
-        time_so_far, came_from = self.search()
-        path = self.reconstruct_path(came_from)
+        time_so_far, trail = self.search()
+        path = self.reconstruct_path(trail)
         return time_so_far[(self.cave.target, Equipment.torch)], path
 
 
@@ -187,4 +188,5 @@ if __name__ == "__main__":
     caver = Caver(cave)
     time, path = caver.find_target()
     print(cave.display(path, 30))
+    print("Regions crossed:", len(path)-1)
     print("Time: ", time)
