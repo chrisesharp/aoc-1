@@ -1,5 +1,4 @@
 from region_type import Region
-from equipment import Equipment
 from caver import Caver
 from display import Display
 
@@ -51,8 +50,8 @@ class Cave:
 
 
 if __name__ == "__main__":
-    cave = Cave(11817, (9,751))
-    # cave = Cave(510, (10,10))
+    #cave = Cave(11817, (9,751))
+    cave = Cave(510, (10,10))
     print("Part 1:")
     print("Risk level:", cave.risk())
     print("Part 2:")
@@ -64,7 +63,7 @@ if __name__ == "__main__":
     print("Regions crossed:", len(path)-1)
     print("Time: ", time)
     
-    print("But a better seemingly solution that doesn't match the AoC answer is...")
+    print("But a better solution that doesn't match the AoC answer is...")
     time, path = caver.find_target(False)
     print(display.display(path, 30))
     print("Regions cross: ",len(path)-1)

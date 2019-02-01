@@ -79,7 +79,7 @@ class Caver:
                             trail[(next, item)] = (current, holding)
         return time_so_far, trail
     
-    def reconstruct_path(self, trail):
+    def follow_trail(self, trail):
         start = self.start
         current = (self.cave.target, Equipment.torch)
         path = []
@@ -95,5 +95,5 @@ class Caver:
             time_so_far, trail = self.search()
         else:
             time_so_far, trail = self.better_search()
-        path = self.reconstruct_path(trail)
+        path = self.follow_trail(trail)
         return time_so_far[(self.cave.target, Equipment.torch)], path
