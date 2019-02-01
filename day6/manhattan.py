@@ -1,5 +1,4 @@
 import sys
-import collections
 
 class Map:
     def __init__(self):
@@ -82,12 +81,12 @@ def main(file):
     for point in input:
         (x,y) = map(int, point.strip().split(','))
         points.append((x,y))
-    map = Map()
-    map.max_dist = 10000
-    map.parse(points)
-    (x,y) = map.find_largest_point()
-    print("largest area: ",map.area((x,y)))
-    print("near region: ",map.region_size())
+    our_map = Map()
+    our_map.max_dist = 10000
+    our_map.parse(points)
+    (x,y) = our_map.find_largest_point()
+    print("largest area: ", our_map.area((x,y)))
+    print("near region: ", our_map.region_size())
                 
     
 def distance(A,B):
