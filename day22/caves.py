@@ -13,14 +13,8 @@ class Caver:
         (x2, y2) = step
         return abs(x1 - x2) + abs(y1 - y2)
 
-    def region_equipment(self, loc):
-        region = self.cave.region(loc)
-        if region == Region.ROCKY:
-            return [Equipment.rope, Equipment.torch]
-        if region == Region.WET:
-            return [Equipment.rope, Equipment.nothing]
-        if region == Region.NARROW:
-            return [Equipment.torch, Equipment.nothing]
+    def right_equipment(self, item, loc):
+        return item != self.cave.region(loc)
 
     def cost(self, holding, item):
         if item == holding:
@@ -31,6 +25,34 @@ class Caver:
     def found_target(self, current, equipment):
         return current == self.cave.target and equipment == Equipment.torch
     
+    def another_search(self):
+        search = PriorityQueue()
+        search.put(self.start, 0)
+        best = {}
+        trail = {}
+        trail[self.start] = None
+        while not search.empty():
+            minutes, option = search.get()
+            (current, holding) = option
+            if option in best and best[option] <= minutes:
+                continue
+            best[option] = minutes
+            if option == (self.cave.target, Equipment.torch):
+                break
+            if self.found_target(current, holding):
+                break
+                
+            for item in Equipment:
+                if item != holding and self.right_equipment(item, current):
+                    search.put( (current, item), minutes + 7 )
+
+            for next in self.cave.neighbours(current):
+                if not self.right_equipment(holding, next):
+                    continue
+                search.put((next, holding), minutes + 1)
+        return minutes, trail
+
+
     def search(self):
         start = self.start
         search = PriorityQueue()
@@ -41,18 +63,27 @@ class Caver:
         trail[start] = None
 
         while not search.empty():
-            current, holding = search.get_item()
+            (minutes, (current, holding)) = search.get()
+
             if self.found_target(current, holding):
                 break
             
+            for item in Equipment:
+                if item != holding and self.right_equipment(item, current):
+                    time_so_far[(current, item)] = minutes + 7
+                    search.put( (current, item), minutes + 7 )
+            
             for next in self.cave.neighbours(current):
-                for item in self.region_equipment(next):
-                    new_time = time_so_far[(current, holding)] + self.cost(holding, item)
-                    if (next, item) not in time_so_far or new_time < time_so_far[(next, item)]:
-                        time_so_far[(next, item)] = new_time
-                        priority = new_time + self.heuristic(next)
-                        search.put((next, item), priority)
-                        trail[(next, item)] = (current, holding)
+                #for item in Equipment:
+                #    if self.right_equipment(item, next):
+                if not self.right_equipment(holding, next):
+                    continue
+                new_time = time_so_far[(current, holding)] + 1
+                if (next, item) not in time_so_far or new_time < time_so_far[(next, item)]:
+                    time_so_far[(next, item)] = new_time
+                    priority = new_time + self.heuristic(next)
+                    search.put((next, item), priority)
+                    trail[(next, item)] = (current, holding)
         return time_so_far, trail
     
     def reconstruct_path(self, trail):
@@ -67,9 +98,12 @@ class Caver:
         return path
 
     def find_target(self):
-        time_so_far, trail = self.search()
-        path = self.reconstruct_path(trail)
-        return time_so_far[(self.cave.target, Equipment.torch)], path
+        time_so_far, trail = self.another_search()
+        # time_so_far, trail = self.search()
+        # print(time_so_far)
+        return time_so_far, trail
+        #path = self.reconstruct_path(trail)
+        #return time_so_far[(self.cave.target, Equipment.torch)], path
 
 
 class Cave:
@@ -86,7 +120,7 @@ class Cave:
 
     def geo_index(self, loc):
         x, y = loc
-        if (x == 0 and y == 0) or loc == self.target:
+        if loc == self.target:
             return 0
         elif y == 0:
             return x * 16807
@@ -187,6 +221,6 @@ if __name__ == "__main__":
     print("Part 2:")
     caver = Caver(cave)
     time, path = caver.find_target()
-    print(cave.display(path, 30))
+    #print(cave.display(path, 30))
     print("Regions crossed:", len(path)-1)
     print("Time: ", time)
