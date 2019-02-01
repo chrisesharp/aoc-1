@@ -109,11 +109,6 @@ def test_10():
     assert time == 45
 
 def test_11():
-    cave = Cave(11817, (9,751))
-    cave.scanner((90,1500)) 
-    assert cave.region((89, 1499)) == Region.WET
-
-def test_12():
     cave = Cave(510, (10,10))
     caver = Caver(cave)
     _, came_from = caver.search()
