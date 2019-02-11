@@ -1,4 +1,5 @@
 from caves import Cave, Caver
+from display import Display
 from region_type import Region
 
 RST = "\u001B[0m"
@@ -51,7 +52,8 @@ def test_5():
 
 def test_6():
     cave = Cave(510, (10,10))
-    output = cave.display([], 6)
+    display = Display(cave)
+    output = display.display([], 6)
     print(output)
     assert "\n" + output == """
 M=.|=.|.|=.|=|=.
@@ -110,10 +112,11 @@ def test_10():
 
 def test_11():
     cave = Cave(510, (10,10))
+    display = Display(cave)
     caver = Caver(cave)
     _, came_from = caver.search()
-    path = caver.reconstruct_path(came_from)
-    received = cave.display(path, 6)
+    path = caver.follow_trail(came_from)
+    received = display.display(path, 6)
     print(received)
     received = received.replace(RST, "")
     received = received.replace(RED, "")
