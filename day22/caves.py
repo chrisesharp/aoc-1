@@ -50,8 +50,8 @@ class Cave:
 
 
 if __name__ == "__main__":
-    #cave = Cave(11817, (9,751))
-    cave = Cave(510, (10,10))
+    cave = Cave(11817, (9,751))
+    # cave = Cave(510, (10,10))
     print("Part 1:")
     print("Risk level:", cave.risk())
     print("Part 2:")
