@@ -10,7 +10,7 @@ class Cell:
     def __str__(self):
         if self.occupier:
             return str(self.occupier)
-        return "."
+        return " "
     
     def __lt__(self, other):
         return self.f < other.f

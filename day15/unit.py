@@ -5,6 +5,10 @@ class Race(IntEnum):
     goblin = 0
     elf = 1
 
+race_map = {
+    Race.elf : "E",
+    Race.goblin : "G"
+}
 class Unit:
     def __init__(self, loc, race):
         self.loc = loc
@@ -16,7 +20,7 @@ class Unit:
         return self.hp > 0
 
     def __str__(self):
-        return self.race
+        return race_map[self.race]
     
     def __eq__(self, other):
         if isinstance(other, Unit):
@@ -28,7 +32,6 @@ class Unit:
         return targets[0].occupier
         
     def hit(self, opponent):
-        target = opponent.loc
         opponent.hp -= self.atk
         if opponent.hp <= 0:
             return opponent

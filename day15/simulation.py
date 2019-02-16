@@ -31,12 +31,12 @@ class Simulation:
                 occupier = None
                 if token == "E":
                     self.units.append((x, y))
-                    occupier = Unit((x, y), token)
+                    occupier = Unit((x, y), Race.elf)
                     occupier.atk = self.elf_atk
                     self.elves += 1
                 if token == "G":
                     self.units.append((x, y))
-                    occupier = Unit((x, y), token)
+                    occupier = Unit((x, y), Race.goblin)
                     self.goblins += 1
                 if token == "#":
                     self.walls.append((x, y))
@@ -256,6 +256,9 @@ class Simulation:
             self.render(screen)
             for unit in self.determine_order():
                 if not self.play_turn(screen, unit):
+                    screen.addstr(self.summary(), curses.color_pair(5) )
+                    screen.addstr("HIT ANY KEY TO CONTINUE")
+                    screen.getkey()
                     return False
                 if self.reboot:
                     return True
@@ -285,20 +288,18 @@ class Simulation:
         for y in range(self.rows):
             hits = []
             for x in range(self.columns):
+                colour = 4
                 if (x, y) in flat_list or (x, y) == current:
-                    screen.addch(y+1, x, ord("*"), curses.color_pair(5))
+                    token = "*"
+                    colour = 5
                 else:
                     token = self.field[(x, y)]
-                    colour = 1
                     if isinstance(token.occupier, Unit):
-                        if token.occupier.race == "G":
-                            colour = 2
-                        else:
-                            colour = 3
-                    screen.addch(y+1, x, ord(str(token)), curses.color_pair(colour))
+                        colour = 2 + int(token.occupier.race)
+                screen.addch(y+1, x, ord(str(token)), curses.color_pair(colour))
                 if (x, y) in self.units:
                     unit = self.unit_at((x, y))
-                    hits.append(str(unit.race)+"("+str(unit.hp)+")")
+                    hits.append(unit.race.name+"("+str(unit.hp)+")")
             output = "\t\t" + " ".join(hits) + "\n"
             screen.addstr(y+1, x, output)
         screen.refresh()
@@ -312,8 +313,6 @@ class Simulation:
         curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
         curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.init_pair(5, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-        self.screen_width = curses.COLS - 1
-        self.screen_height = curses.LINES - 1
 
     def main(self, rounds, pt2=False):
         self.pt2 = pt2
@@ -323,8 +322,6 @@ class Simulation:
         while curses.wrapper(self.resolve_combat, rounds):
             self.reset_battle()
             pass
-        # print(self.render([]))
-        print(self.summary())
 
 
 if __name__ == "__main__":
