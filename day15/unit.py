@@ -1,4 +1,9 @@
 from cell import Cell
+from enum import IntEnum
+
+class Race(IntEnum):
+    goblin = 0
+    elf = 1
 
 class Unit:
     def __init__(self, loc, race):

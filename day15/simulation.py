@@ -1,16 +1,8 @@
-from unit import Unit
+from unit import Unit, Race
 from cell import Cell
-import sys
 from time import sleep
-
-
-ESC = "\u001B["
-CLR = "\u001B[H" + "\u001B[2J"
-RST = "\u001B[0m"
-REVON = "\u001B[?5h"
-REVOFF = "\u001B[?5l"
-BLINK = "\u001B[5m"
-REV = "\u001B[7m"
+import sys
+import curses
 
 
 class Simulation:
@@ -50,31 +42,6 @@ class Simulation:
                     self.walls.append((x, y))
                     occupier = token
                 self.field[(x, y)] = Cell((x, y), occupier)
-
-    def render(self, current=None, lists=[]):
-        output = ""
-        flat_list = [item for sublist in lists for sublist2 in sublist for item in sublist2]
-        output = CLR
-        output += "Round: " + str(self.round) + "\tElves:" + str(self.elves)
-        output += ", Goblins:" + str(self.goblins)
-        output += "\t" + str(self.count) + "\n"
-        output += "Elf attack power: " + str(self.elf_atk) + "\n"
-        if current:
-            output += "Current unit: " + str(current) + "\n"
-        for y in range(self.rows):
-            hits = []
-            for x in range(self.columns):
-                if (x, y) in flat_list or (x, y) == current:
-                    output += ESC + "31m" + "*" + RST
-                else:
-                    output += str(self.field[(x, y)])
-                if (x, y) in self.units:
-                    unit = self.unit_at((x, y))
-                    hits.append(str(unit.race)+"("+str(unit.hp)+")")
-            output += "\t\t" + " ".join(hits) + "\n"
-        sleep(self.FPS)
-        self.count += 1
-        return output
 
     def summary(self):
         output = ""
@@ -234,20 +201,20 @@ class Simulation:
                                key=lambda x: (x[1], x[0]))
         return (min_dist, min_reachable[0])
 
-    def play_turn(self, unit):
+    def play_turn(self, screen, unit):
         if not unit.is_alive():
             return True
 
         targets = self.find_targets(unit)
         if not targets:
             return False
-        # print(self.render(unit.loc,[[targets]]))
+        # self.render(screen, unit.loc,[[targets]])
 
         ranges = self.find_ranges(unit, targets)
         if not ranges:
             return True
 
-        # print(self.render(unit.loc,[[ranges]]))
+        # self.render(screen, unit.loc,[[ranges]])
         if unit.loc in ranges:
             chosen_target = unit.attack(self.get_units_in_contact(unit))
             casualty = unit.hit(chosen_target)
@@ -281,16 +248,18 @@ class Simulation:
         self.field[unit.loc] = Cell(unit.loc, unit)
         self.units.append(unit.loc)
         return unit
-
-    def resolve_combat(self, rounds):
+    
+    def resolve_combat(self, screen, rounds):
+        self.init_screen(screen)
         self.reboot = False
         while self.still_turns_to_play(rounds):
-            print(self.render())
+            self.render(screen)
             for unit in self.determine_order():
-                if not self.play_turn(unit):
+                if not self.play_turn(screen, unit):
                     return False
                 if self.reboot:
                     return True
+            sleep(self.FPS)            
             self.round += 1
 
     def reset_battle(self):
@@ -302,16 +271,59 @@ class Simulation:
         self.round = 0
         self.reboot = False
         self.parse()
+    
+    def render(self, screen, current=None, lists=[]):
+        output = ""
+        flat_list = [item for sublist in lists for sublist2 in sublist for item in sublist2]
+        output += "Round: " + str(self.round) + "\tElves:" + str(self.elves)
+        output += ", Goblins:" + str(self.goblins)
+        output += "\t" + str(self.count) + "\n"
+        output += "Elf attack power: " + str(self.elf_atk) + "\n"
+        if current:
+            output += "Current unit: " + str(current) + "\n"
+        screen.addstr(0,0, output)
+        for y in range(self.rows):
+            hits = []
+            for x in range(self.columns):
+                if (x, y) in flat_list or (x, y) == current:
+                    screen.addch(y+1, x, ord("*"), curses.color_pair(5))
+                else:
+                    token = self.field[(x, y)]
+                    colour = 1
+                    if isinstance(token.occupier, Unit):
+                        if token.occupier.race == "G":
+                            colour = 2
+                        else:
+                            colour = 3
+                    screen.addch(y+1, x, ord(str(token)), curses.color_pair(colour))
+                if (x, y) in self.units:
+                    unit = self.unit_at((x, y))
+                    hits.append(str(unit.race)+"("+str(unit.hp)+")")
+            output = "\t\t" + " ".join(hits) + "\n"
+            screen.addstr(y+1, x, output)
+        screen.refresh()
+        self.count += 1
+        return output
+    
+    def init_screen(self, screen):
+        screen.clear()
+        curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(5, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        self.screen_width = curses.COLS - 1
+        self.screen_height = curses.LINES - 1
 
     def main(self, rounds, pt2=False):
         self.pt2 = pt2
         if pt2:
             self.elf_atk = 4
         self.parse()
-        while self.resolve_combat(rounds):
+        while curses.wrapper(self.resolve_combat, rounds):
             self.reset_battle()
             pass
-        print(self.render([]))
+        # print(self.render([]))
         print(self.summary())
 
 
