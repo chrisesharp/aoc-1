@@ -121,7 +121,7 @@ class Simulation:
         target = unit.loc
         self.units.remove(target)
         self.field[target] = Cell(target)
-        if unit.race == "G":
+        if unit.race == Race.goblin:
             self.goblins -= 1
         else:
             self.elves -= 1
@@ -280,11 +280,12 @@ class Simulation:
         flat_list = [item for sublist in lists for sublist2 in sublist for item in sublist2]
         output += "Round: " + str(self.round) + "\tElves:" + str(self.elves)
         output += ", Goblins:" + str(self.goblins)
-        output += "\t" + str(self.count) + "\n"
-        output += "Elf attack power: " + str(self.elf_atk) + "\n"
-        if current:
-            output += "Current unit: " + str(current) + "\n"
+        output += "\t" + str(self.count)
         screen.addstr(0,0, output)
+        output = "Elf attack power: " + str(self.elf_atk)
+        if current:
+            output += "\tCurrent unit: " + str(current) + "\n"
+        screen.addstr(1,0, output)
         for y in range(self.rows):
             hits = []
             for x in range(self.columns):
@@ -296,12 +297,12 @@ class Simulation:
                     token = self.field[(x, y)]
                     if isinstance(token.occupier, Unit):
                         colour = 2 + int(token.occupier.race)
-                screen.addch(y+1, x, ord(str(token)), curses.color_pair(colour))
+                screen.addch(y+2, x, ord(str(token)), curses.color_pair(colour))
                 if (x, y) in self.units:
                     unit = self.unit_at((x, y))
                     hits.append(unit.race.name+"("+str(unit.hp)+")")
             output = "\t\t" + " ".join(hits) + "\n"
-            screen.addstr(y+1, x, output)
+            screen.addstr(y+2, x, output)
         screen.refresh()
         self.count += 1
         return output
@@ -333,4 +334,4 @@ if __name__ == "__main__":
     with open(file, 'r') as myfile:
         input = myfile.read()
     sim = Simulation(input)
-    sim.main(max_rounds, False)
+    sim.main(max_rounds, True)
