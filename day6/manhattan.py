@@ -1,4 +1,5 @@
 import sys
+# import cProfile
 
 class Map:
     def __init__(self):
@@ -19,16 +20,16 @@ class Map:
     def find_largest_point(self):
         biggest_area = 0
         owning_point = None
-        for y in range(self.minY,self.maxY+1):
-            for x in range(self.minX, self.maxX+1):
-                owner = self.find_owner((x,y))
+        for y in range(self.minY, self.maxY + 1):
+            for x in range(self.minX, self.maxX + 1):
+                owner = self.find_owner((x, y))
                 if owner:
-                    self.owners.update({(x,y):owner})
+                    self.owners.update({(x, y) : owner})
                     area_count = len(self.areas.get(owner))
                     if area_count > biggest_area and owner not in self.infinites:
                         biggest_area = area_count
                         owning_point = owner
-                    self.points.update({owner:area_count})
+                    self.points.update({owner : area_count})
         print("biggest owner:",owning_point)
         return owning_point
         
@@ -79,13 +80,16 @@ def main(file):
     input = open(file, "r")
     points = []
     for point in input:
-        (x,y) = map(int, point.strip().split(','))
-        points.append((x,y))
+        (x, y) = map(int, point.strip().split(','))
+        points.append((x, y))
     our_map = Map()
     our_map.max_dist = 10000
     our_map.parse(points)
-    (x,y) = our_map.find_largest_point()
-    print("largest area: ", our_map.area((x,y)))
+    
+    print("Part 1:")
+    (x, y) = our_map.find_largest_point()
+    print("largest area: ", our_map.area((x, y)))
+    print("Part 2:")
     print("near region: ", our_map.region_size())
                 
     
@@ -99,12 +103,12 @@ def bounds(points):
     maxX = maxY = 0
     for point in points:
         (x,y) = point
-        minX=min(x,minX)
-        minY=min(y,minY)
-        maxX=max(x,maxX)
-        maxY=max(y,maxY)
-    return [(minX,minY),(maxX,maxY)]
+        minX = min(x,minX)
+        minY = min(y,minY)
+        maxX = max(x,maxX)
+        maxY = max(y,maxY)
+    return [(minX, minY), (maxX, maxY)]
 
 if __name__ == "__main__":
     main(sys.argv[1])
-    
+    # cProfile.run("main(sys.argv[1])")

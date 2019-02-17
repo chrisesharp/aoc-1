@@ -15,7 +15,7 @@ class Logger:
             timestring = line[1:17]
             entry = line[19:]
             timestamp = isoparse(timestring)
-            logs.update({timestamp:entry})
+            logs.update({timestamp : entry})
             if entry[:5] == "Guard":
                 rest = entry[7:]
                 guard = rest[0:rest.index(" ")]

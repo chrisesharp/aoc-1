@@ -19,24 +19,24 @@ class Graph:
         done = []
         elapsed = -1
         workers = [['_',0] for x in range(num)]
-        self.print_headers(workers);
         
+        self.print_headers(workers)
         while (self.get_avail()):
-            elapsed+=1
+            elapsed += 1
             for i in range(len(workers)):
                 workers[i], done = self.update_work(workers[i], done)
-            todo=self.get_avail()
+            todo = self.get_avail()
             for i in range(len(todo)): 
                 workers, todo, done = self.dispatch_work(i, workers, todo, done)
             self.print_status(elapsed, workers, done)
         return done, elapsed
     
     def secs(self, node):
-        return ord(node)-64 + self.latency
+        return ord(node) - 64 + self.latency
     
     def update_work(self, worker, done):
         node, time = worker
-        if node!='_':
+        if node != '_':
             if time == 1:
                 done = done + [node]
                 self.remove_dependency(node)
@@ -64,49 +64,48 @@ class Graph:
     def assign_work(self, avail, next, workers, todo, done):
         if avail:
             (idx, task) = avail
-            if (idx>-1):
-                workers[idx] = [next,self.secs(next)]
+            if idx > -1:
+                workers[idx] = [next, self.secs(next)]
                 if task != "_":
                     done = done + [task]
                     self.remove_dependency(task)
-                    todo=todo[1:]
+                    todo = todo[1:]
         return workers, todo, done
         
     def available(self, next):
-        return len(self.nodes.get(next,[]))==0
+        return len(self.nodes.get(next, [])) == 0
     
     def print_headers(self, workers):
-        sys.stdout.write("Second\t\t")
+        sys.stdout.write("Second\t")
         for i in range(len(workers)):
-            sys.stdout.write("Worker {}\t".format(i))
+            sys.stdout.write("W {}\t".format(i))
         sys.stdout.write("Done\n")
         
     def print_status(self, elapsed, workers, done):
-        sys.stdout.write("{}\t\t".format(elapsed))
+        sys.stdout.write("{}\t".format(elapsed))
         for i in range(len(workers)):
-            sys.stdout.write("{}\t".format(workers[i]))
-        sys.stdout.write("{}\n".format(done))
+            sys.stdout.write("{}\t".format(workers[i][0]))
+        sys.stdout.write("{}\n".format(''.join(done)))
     
     def find_ordered_path(self):
         done = []
-        todo=self.get_avail()
+        todo = self.get_avail()
         while (todo):
             next = todo[0]
-            next_deps = self.nodes.get(next,[])
-            if len(next_deps)==0:
+            next_deps = self.nodes.get(next, [])
+            if len(next_deps) == 0:
                 done = done + [next]
-                todo=todo[1:]
+                todo = todo[1:]
                 self.remove_dependency(next)
-            todo=self.get_avail()
+            todo = self.get_avail()
         return done
         
     def remove_dependency(self, dep):
         nodes = list(self.nodes)
         for node in nodes:
-            deps = self.nodes.get(node)
-            deps = sorted(filter(lambda x: x!=dep, deps))
-            self.nodes.update({node:deps})
-        self.all_nodes = list(filter(lambda x: x!=dep, self.all_nodes))
+            deps = sorted(filter(lambda x: x != dep, self.nodes.get(node)))
+            self.nodes.update({ node : deps })
+        self.all_nodes = list(filter(lambda x: x != dep, self.all_nodes))
         
     def parse(self, input):
         for line in input:
@@ -120,7 +119,7 @@ class Graph:
 
         for node in self.nodes:
             deps = sorted(self.nodes[node])
-            self.nodes.update({node:deps})
+            self.nodes.update({ node : deps })
             print(node,deps)
         
     def get_avail(self):

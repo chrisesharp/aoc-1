@@ -38,8 +38,8 @@ class Claim:
         unique = ""
         for loc in self.locations:
             usage = len(self.locations.get(loc))
-            if usage>=2:
-                overlap+=1
+            if usage >= 2:
+                overlap += 1
                 for claim in self.locations.get(loc):
                     overlapping.add(claim)
         unique = (set(self.claims).difference(overlapping))

@@ -8,23 +8,23 @@ class Sky:
         self.right  = 0
         self.top    = 0
         self.bottom = 0
-        self.cols = [10,16,28,34]
-        self.scale = 1
+        self.cols   = [10,16,28,34]
+        self.scale  = 1
     
     def add_point(self, line):
         loc = line[self.cols[0]:self.cols[1]].split(',')
-        x = int(int(loc[0].strip())*self.scale)
-        y = int(int(loc[1].strip())*self.scale)
-        self.left = min(self.left,x)
-        self.right = max(self.right,x)
-        self.top = min(self.top,y)
-        self.bottom = max(self.bottom,y)
+        x = int(int(loc[0].strip()) * self.scale)
+        y = int(int(loc[1].strip()) * self.scale)
+        self.left = min(self.left, x)
+        self.right = max(self.right, x)
+        self.top = min(self.top, y)
+        self.bottom = max(self.bottom, y)
         velocity = line[self.cols[2]:self.cols[3]].split(',')
         dx = int(velocity[0].strip())
         dy = int(velocity[1].strip())
-        points = self.points.get((x,y),[])
-        points.append((dx,dy))
-        self.points.update({(x,y):points})
+        points = self.points.get((x, y),[])
+        points.append((dx, dy))
+        self.points.update({(x, y):points})
     
     def get_point(self, location):
         if self.points.get(location,False):
@@ -38,9 +38,9 @@ class Sky:
             velocities = self.points.pop(point)
             (x,y) = point
             for (dx,dy) in velocities:
-                new_list = new_points.get((x+dx,y+dy),[])
+                new_list = new_points.get((x+dx, y+dy),[])
                 new_list.append((dx,dy))
-                new_points.update({(x+dx,y+dy):new_list})
+                new_points.update({(x+dx, y+dy):new_list})
         self.points = new_points
     
     def width(self):
@@ -53,10 +53,10 @@ class Sky:
         left = right = top = bottom = 0
         for point in self.points:
             (x,y) = point
-            left = min(left,x)
-            right = max(right,x)
-            top = min(top,y)
-            bottom = max(bottom,y)
+            left = min(left, x)
+            right = max(right, x)
+            top = min(top, y)
+            bottom = max(bottom, y)
         self.left = left
         self.right = right
         self.top = top
@@ -66,8 +66,8 @@ class Sky:
         output = "\n"
         for y in range(self.top, self.bottom+1):
             for x in range(self.left, self.right+1):
-                output+=self.get_point((x,y))
-            output+='\n'
+                output += self.get_point((x, y))
+            output += '\n'
         return output
     
     def draw(self, tick):
@@ -79,8 +79,8 @@ class Sky:
         im = Image.new('1', (width,height))
         for y in range(self.top, self.bottom+1):
             for x in range(self.left, self.right+1):
-                output=self.get_point((x,y))
-                if output=='#':
+                output = self.get_point((x,y))
+                if output == '#':
                     im.putpixel((x-self.left,y-self.top), ImageColor.getcolor('white', '1'))
         file = str(tick) + ".png"
         im.save(file)

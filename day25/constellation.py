@@ -3,7 +3,7 @@ import sys
 def find_constellations(input):
     points = {}
     for line in input.split():
-        point = tuple([int(i) for i in line.split(',')])
+        point = tuple(map(int, line.split(',')))
         assimilated = False
         linked = {}
         for known_point in list(points.keys()):

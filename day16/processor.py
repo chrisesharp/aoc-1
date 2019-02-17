@@ -128,7 +128,7 @@ def find_matches(opcode_samples):
 def get_definites(opcode_matches):
     definites = []
     finished = True
-    for opcode, matches in opcode_matches.items():
+    for matches in opcode_matches.values():
         if len(matches) == 1:
             match = list(matches)[0]
             definites.append(match)

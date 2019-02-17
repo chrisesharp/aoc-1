@@ -5,11 +5,10 @@ import collections
 
 def transform(input):
     letters = list(collections.Counter(input.lower()).keys())
-    print(letters)
     best_result = ""
     best = 9999999999
     for letter in letters:
-        sample = re.sub(letter,'',input,flags=re.IGNORECASE)
+        sample = re.sub(letter, '', input, flags=re.IGNORECASE)
         output = react(sample)
         if len(output) < best:
             best = len(output)
@@ -18,13 +17,16 @@ def transform(input):
 
 @tail_recursive
 def react(input, accumulator=""):
-    if len(input) == 0:
+    if not input:
         return accumulator
-    if (not (input[0].lower()==accumulator[-1:].lower() and input[0]!=accumulator[-1:])):
-        accumulator=accumulator+input[0]
+    if not reactive_pair(input[0], accumulator[-1:]):
+        accumulator = accumulator + input[0]
     else:
-        accumulator=accumulator[:-1]
+        accumulator = accumulator[:-1]
     recurse(input[1:], accumulator)
+
+def reactive_pair(a, b):
+    return a.lower() == b.lower() and a != b
 
 def main(file):
     input = open(file, "r").readline().strip()

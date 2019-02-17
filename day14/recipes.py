@@ -35,7 +35,6 @@ class Scoreboard:
         found_target = None
         count = chunksize
         while not found_target:
-            print(len(self.recipes))
             self.iterate(count)
             recipes = self.stringify(self.recipes)
             index = recipes.find(target)
@@ -46,7 +45,7 @@ class Scoreboard:
         return found_target
     
     def main(self):
-        self.iterate()
+        self.iterate(self.target)
         print(self.ten_recipes())
     
     def main_pt2(self):
@@ -55,6 +54,8 @@ class Scoreboard:
 if __name__ == "__main__":
     input = 681901
     score = Scoreboard(input)
-    #score.main()
+    print("Part 1:")
+    score.main()
+    print("Part 2:")
     score.main_pt2()
     
