@@ -3,6 +3,7 @@ from cell import Cell
 from time import sleep
 import sys
 import curses
+import cProfile
 
 
 class Simulation:
@@ -19,6 +20,7 @@ class Simulation:
         self.count = 0
         self.reboot = False
         self.elf_atk = 3
+        self.screen = None
 
     def parse(self):
         self.columns = self.input.index("\n")
@@ -201,20 +203,19 @@ class Simulation:
                                key=lambda x: (x[1], x[0]))
         return (min_dist, min_reachable[0])
 
-    def play_turn(self, screen, unit):
+    def play_turn(self, unit):
         if not unit.is_alive():
             return True
 
         targets = self.find_targets(unit)
         if not targets:
             return False
-        # self.render(screen, unit.loc,[[targets]])
 
         ranges = self.find_ranges(unit, targets)
         if not ranges:
             return True
 
-        # self.render(screen, unit.loc,[[ranges]])
+        # self.render(self.screen, unit.loc,[[ranges]])
         if unit.loc in ranges:
             chosen_target = unit.attack(self.get_units_in_contact(unit))
             casualty = unit.hit(chosen_target)
@@ -253,9 +254,9 @@ class Simulation:
         self.init_screen(screen)
         self.reboot = False
         while self.still_turns_to_play(rounds):
-            self.render(screen)
+            self.render()
             for unit in self.determine_order():
-                if not self.play_turn(screen, unit):
+                if not self.play_turn(unit):
                     screen.addstr(self.summary(), curses.color_pair(5) )
                     screen.addstr("HIT ANY KEY TO CONTINUE")
                     screen.getkey()
@@ -275,17 +276,17 @@ class Simulation:
         self.reboot = False
         self.parse()
     
-    def render(self, screen, current=None, lists=[]):
+    def render(self, current=None, lists=[]):
         output = ""
         flat_list = [item for sublist in lists for sublist2 in sublist for item in sublist2]
         output += "Round: " + str(self.round) + "\tElves:" + str(self.elves)
         output += ", Goblins:" + str(self.goblins)
         output += "\t" + str(self.count)
-        screen.addstr(0,0, output)
+        self.screen.addstr(0,0, output)
         output = "Elf attack power: " + str(self.elf_atk)
         if current:
             output += "\tCurrent unit: " + str(current) + "\n"
-        screen.addstr(1,0, output)
+        self.screen.addstr(1,0, output)
         for y in range(self.rows):
             hits = []
             for x in range(self.columns):
@@ -297,18 +298,19 @@ class Simulation:
                     token = self.field[(x, y)]
                     if isinstance(token.occupier, Unit):
                         colour = 2 + int(token.occupier.race)
-                screen.addch(y+2, x, ord(str(token)), curses.color_pair(colour))
+                self.screen.addch(y+2, x, ord(str(token)), curses.color_pair(colour))
                 if (x, y) in self.units:
                     unit = self.unit_at((x, y))
                     hits.append(unit.race.name+"("+str(unit.hp)+")")
             output = "\t\t" + " ".join(hits) + "\n"
-            screen.addstr(y+2, x, output)
-        screen.refresh()
+            self.screen.addstr(y+2, x, output)
+        self.screen.refresh()
         self.count += 1
         return output
     
     def init_screen(self, screen):
-        screen.clear()
+        self.screen = screen
+        self.screen.clear()
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
@@ -334,4 +336,5 @@ if __name__ == "__main__":
     with open(file, 'r') as myfile:
         input = myfile.read()
     sim = Simulation(input)
-    sim.main(max_rounds, True)
+    sim.main(max_rounds, False)
+    #cProfile.run('sim.main(max_rounds, False)')
