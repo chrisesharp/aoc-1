@@ -16,11 +16,12 @@ class Simulation:
         self.field = {}
         self.unit_order = None
         self.round = 0
-        self.FPS = 1/30
+        self.FPS = 1/25
         self.count = 0
         self.reboot = False
         self.elf_atk = 3
         self.screen = None
+        self.outcome = 0
 
     def parse(self):
         self.columns = self.input.index("\n")
@@ -57,7 +58,7 @@ class Simulation:
         output += "Outcome: " + str(self.round) + " * "
         output += str(hitpoints) + " = " + str(hitpoints * self.round)+"\n"
         output += "Final attack power: " + str(self.elf_atk) + "\n"
-        return output
+        return output, hitpoints * self.round
 
     def dimensions(self):
         return (self.columns, self.rows)
@@ -244,7 +245,8 @@ class Simulation:
             self.render()
             for unit in self.determine_order():
                 if not self.play_turn(unit):
-                    screen.addstr(self.summary(), curses.color_pair(5) )
+                    summary, self.outcome = self.summary()
+                    screen.addstr(summary, curses.color_pair(5) )
                     screen.addstr("HIT ANY KEY TO CONTINUE")
                     screen.getkey()
                     return False
@@ -307,6 +309,7 @@ class Simulation:
     def main(self, rounds, pt2=False):
         self.pt2 = pt2
         if pt2:
+            self.FPS = 0
             self.elf_atk = 4
         self.parse()
         while curses.wrapper(self.resolve_combat, rounds):
@@ -323,5 +326,12 @@ if __name__ == "__main__":
     with open(file, 'r') as myfile:
         input = myfile.read()
     sim = Simulation(input)
+    print("Part 1:")
+    sim.main(max_rounds, False)
+    print("Outcome: ", sim.outcome)
+    
+    print("Part 2:")
+    sim = Simulation(input)
     sim.main(max_rounds, True)
+    print("Outcome: ", sim.outcome)
     # cProfile.run('sim.main(max_rounds, False)')
