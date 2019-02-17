@@ -50,10 +50,7 @@ class Simulation:
         hitpoints = 0
         for loc in self.units:
             hitpoints += self.unit_at(loc).hp
-        if self.elves > self.goblins:
-            winner = "Elves"
-        else:
-            winner = "Goblins"
+        winner = "Elves" if self.elves > self.goblins else "Goblins"
         output += "Combat ends after " + str(self.round) + " full rounds\n"
         output += winner + " win with "
         output += str(hitpoints) + " total hit points left\n"
@@ -68,28 +65,23 @@ class Simulation:
     def unit_at(self, loc):
         if loc in self.units:
             return self.field.get(loc).occupier
-        return None
 
     def get_units_in_contact(self, unit):
-        contacts = None
+        contacts = {}
         for loc in self.get_adjacents(unit.loc):
             if loc in self.units:
                 adjacent = self.field.get(loc)
                 if adjacent.occupier.race != unit.race:
-                    if not contacts:
-                        contacts = {}
                     contacts[loc] = adjacent
-        if contacts:
-            contacts = dict(sorted(contacts.items(),
-                key=lambda x: (x[1].occupier.hp, x[1].loc[1], x[1].loc[0])))
-        return contacts
+        return dict(sorted(contacts.items(),
+                key=lambda k: (k[1].occupier.hp, k[1].loc[1], k[1].loc[0])))
 
     def wall_at(self, loc):
         return loc in self.walls
 
     def determine_order(self):
         self.unit_order = []
-        for loc in sorted(self.units, key=lambda x: (x[1], x[0])):
+        for loc in sorted(self.units, key=lambda k: (k[1], k[0])):
             self.unit_order.append(self.field[loc].occupier)
         return self.unit_order
 
@@ -98,21 +90,15 @@ class Simulation:
 
     def get_adjacents(self, loc):
         (target_x, target_y) = loc
-        points = (
-                    (target_x, target_y - 1),
-                    (target_x - 1, target_y),
-                    (target_x, target_y + 1),
-                    (target_x + 1, target_y)
-                )
+        points = ((target_x, target_y - 1),
+                  (target_x - 1, target_y),
+                  (target_x, target_y + 1),
+                  (target_x + 1, target_y))
         return [loc for loc in points if self.is_reachable(loc)]
 
     def is_reachable(self, loc):
         x, y = loc
-        if (x < 0 or x >= self.columns):
-            return False
-        if (y < 0 or y >= self.rows):
-            return False
-        return True
+        return not ((x < 0 or x >= self.columns) or (y < 0 or y >= self.rows))
 
     def is_occupied(self, loc):
         return loc in self.units or loc in self.walls
@@ -185,11 +171,11 @@ class Simulation:
             min_dist -= 1
             new_parents = set()
             for _, _, p in parents:
-                for x in paths:
-                    if x[0] == p and x[1] == min_dist:
-                        new_parents.add(x)
+                for target, dist, parent in paths:
+                    if target == p and dist == min_dist:
+                        new_parents.add((target, dist, parent))
             parents = new_parents
-        return sorted(set(x[0] for x in parents), key=lambda x: (x[1], x[0])).pop(0)
+        return sorted(set(target for target, _, _ in parents), key=lambda k: (k[1], k[0])).pop(0)
 
     def find_closest_target(self, unit, targets):
         reachable_targets, paths = self.find_reachable_targets(unit, targets)
@@ -201,7 +187,7 @@ class Simulation:
     def choose_closest_target(self, reachable):
         min_dist = min(x[1] for x in reachable)
         min_reachable = sorted([x[0] for x in reachable if x[1] == min_dist],
-                               key=lambda x: (x[1], x[0]))
+                               key=lambda k: (k[1], k[0]))
         return (min_dist, min_reachable[0])
 
     def play_turn(self, unit):

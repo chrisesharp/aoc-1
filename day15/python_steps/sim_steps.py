@@ -1,6 +1,6 @@
 from behave import given, when, then
 from simulation import Simulation
-from unit import Unit
+from unit import Unit, Race
 
 @given(u'the starting state')
 def step_impl(context):
@@ -25,7 +25,7 @@ def step_impl(context):
         x = int(row[1])
         y = int(row[2])
         unit = context.sim.unit_at((x,y))
-        assert unit.race == unit_type
+        assert str(unit) == unit_type
 
 @then(u'I should have walls at')
 def step_impl(context):
@@ -38,7 +38,7 @@ def step_impl(context):
 def step_impl(context):
     order = []
     for row in context.table:
-        race = row[0]
+        race = Race.goblin if row[0] == "G" else Race.elf
         x = int(row[1])
         y = int(row[2])
         order.append(Unit((x,y),race))
@@ -64,7 +64,7 @@ def step_impl(context):
 def step_impl(context):
     print("context.targets:",context.targets)
     for row in context.table:
-        race = row[0]
+        race = Race.goblin if row[0] == "G" else Race.elf
         x = int(row[1])
         y = int(row[2])
         assert Unit((x,y),race) in context.targets
