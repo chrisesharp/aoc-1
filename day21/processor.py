@@ -86,10 +86,10 @@ class CPU:
             self.execute(instruction)
             if self.result_compare_called(ip):
                 if self.registers[4] in already_seen:
-                    print("already seen ",self.registers[4], execution_steps)
+                    # print("already seen ",self.registers[4], execution_steps)
                     return cycle.pop(), execution_steps
                 else:
-                    print("new: ",self.registers[4], "(",len(already_seen), ") over ", execution_steps)
+                    # print("new: ",self.registers[4], "(",len(already_seen), ") over ", execution_steps)
                     already_seen.add(self.registers[4])
                     cycle.append(self.registers[4])
             if self.ipc >= 0:

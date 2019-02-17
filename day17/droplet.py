@@ -1,10 +1,9 @@
 from direction import Direction, next_location, opposite, above
-from time import time_ns
-
+import time
 
 class Drop:
     def __init__(self, loc, dir):
-        self.id = time_ns() + hash(loc)
+        self.id = time.time_ns() + hash(loc)
         self.loc = loc
         self.dir = dir
         self.origin = loc

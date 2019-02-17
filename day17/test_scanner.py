@@ -1,4 +1,5 @@
 from ground_scanner import Scanner
+from droplet import Drop
 
 
 def test_bounds():
