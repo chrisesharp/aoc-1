@@ -16,7 +16,7 @@ class Simulation:
         self.field = {}
         self.unit_order = None
         self.round = 0
-        self.FPS = 0
+        self.FPS = 1/30
         self.count = 0
         self.reboot = False
         self.elf_atk = 3
@@ -183,12 +183,13 @@ class Simulation:
         parents = [x for x in paths if x[0] == chosen and x[1] == min_dist]
         while min_dist > 1:
             min_dist -= 1
-            new_parents = []
+            new_parents = set()
             for _, _, p in parents:
-                new_parents.extend(x for x in paths
-                                   if x[0] == p and x[1] == min_dist)
+                for x in paths:
+                    if x[0] == p and x[1] == min_dist:
+                        new_parents.add(x)
             parents = new_parents
-        return sorted(set(x[0] for x in parents), key=lambda x: (x[1], x[0]))[0]
+        return sorted(set(x[0] for x in parents), key=lambda x: (x[1], x[0])).pop(0)
 
     def find_closest_target(self, unit, targets):
         reachable_targets, paths = self.find_reachable_targets(unit, targets)
@@ -336,5 +337,5 @@ if __name__ == "__main__":
     with open(file, 'r') as myfile:
         input = myfile.read()
     sim = Simulation(input)
-    sim.main(max_rounds, False)
-    #cProfile.run('sim.main(max_rounds, False)')
+    sim.main(max_rounds, True)
+    # cProfile.run('sim.main(max_rounds, False)')
