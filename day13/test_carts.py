@@ -51,9 +51,6 @@ def test_5():
     output = ""
     while not track.get_crash():
         output += track.tick()
-    output = output.replace("\u001B[H\u001B[2J","")
-    output = output.replace("\u001B[1m","")
-    output = output.replace("\u001B[0m","")
     output = output.rstrip("\n")
     print(output)
     assert track.get_crash() == (7,3)
@@ -68,11 +65,21 @@ def test_6():
     track.parse()
     output = ""
     while len(track.carts)>1:
-        output += track.tick2()
-    output = output.replace("\u001B[H\u001B[2J","")
-    output = output.replace("\u001B[1m","")
-    output = output.replace("\u001B[0m","")
+        output += track.tick()
     output = output.rstrip("\n")
     print(output)
     assert output == expected
+
+def test_7():
+    with open("input.txt") as f:
+        input = f.read()
+    track1 = Track(input, False)
+    track1.parse()
+    track1.run_sim(None, True)
+    assert track1.get_crash() == (45, 34)
+    
+    track2 = Track(input, False)
+    track2.parse()
+    track2.run_sim(None, False)
+    assert track2.carts[0].get_location() == (91, 25)
     

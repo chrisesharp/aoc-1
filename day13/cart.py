@@ -1,4 +1,5 @@
 from direction import Direction, next_location,  left, right, ahead, turn
+import random
 
 class Cart:
     track_tokens = {
@@ -43,6 +44,7 @@ class Cart:
     }
     def __init__(self, token, coord, number):
         self.token = token
+        self.colour = random.randint(1,6)
         self.direction = Cart.tokens[token]
         self.location = coord
         self.turn_index = -1
@@ -68,8 +70,7 @@ class Cart:
         self.direction = dir_func(self,dir)
         next = next_location(loc,self.direction)
 
-        next_track = self.track.field[next[0],next[1]] 
-        
+        # next_track = self.track.field[next[0],next[1]] 
         self.location = next
         self.key = (next[1],next[0])
         self.token = self.token_dirs[self.direction]
