@@ -194,7 +194,6 @@ class Scanner:
 
     def fix_surface(self):
         for lip in self.lips:
-            start_x, start_y = lip
             left = self.ground.get(next_location(lip, Direction.LEFT), "")
             right = self.ground.get(next_location(lip, Direction.RIGHT), "")
             if left == "|":
