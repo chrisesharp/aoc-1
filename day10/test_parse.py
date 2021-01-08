@@ -13,7 +13,7 @@ def test_2():
     sky = Sky()
     sky.add_point(input)
     print(sky.points)
-    sky.tick()
+    sky.points = sky.tick()
     print(sky.points)
     assert sky.get_point((9,1)) == '.'
     assert sky.get_point((9,3)) == '#'
@@ -23,13 +23,11 @@ def test_3():
     file = open("test.txt", "r")
     for line in file:
         sky.add_point(line)
-    
-    (left, right) = sky.width()
-    assert left == -6
-    assert right == 15
-    (top, bottom) = sky.height()
-    assert top == -4
-    assert bottom == 11
+
+    assert sky.left == -6
+    assert sky.right == 15
+    assert sky.top == -4
+    assert sky.bottom == 11
 
 def test_4():
     expected = r"""
@@ -82,9 +80,9 @@ def test_5():
     file = open("test.txt", "r")
     for line in file:
         sky.add_point(line)
-    sky.tick()
-    sky.tick()
-    sky.tick()
+    sky.points = sky.tick()
+    sky.points = sky.tick()
+    sky.points = sky.tick()
     output = sky.render()
     print(output)
     assert output == expected

@@ -32,35 +32,26 @@ class Sky:
         return '.'
     
     def tick(self):
-        points = list(self.points)
         new_points = {}
-        for point in points:
-            velocities = self.points.pop(point)
+        for point in self.points:
+            velocities = self.points[point]
             (x,y) = point
             for (dx,dy) in velocities:
-                new_list = new_points.get((x+dx, y+dy),[])
+                new_list = new_points.get((x + dx, y + dy),[])
                 new_list.append((dx,dy))
-                new_points.update({(x+dx, y+dy):new_list})
-        self.points = new_points
+                new_points.update({(x + dx, y + dy):new_list})
+        return new_points
     
-    def width(self):
-        return (self.left, self.right)
-    
-    def height(self):
-        return (self.top, self.bottom)
-    
-    def bounds(self):
+    def bounds(self, points=None):
+        points = points or self.points
         left = right = top = bottom = 0
-        for point in self.points:
+        for point in points:
             (x,y) = point
             left = min(left, x)
             right = max(right, x)
             top = min(top, y)
             bottom = max(bottom, y)
-        self.left = left
-        self.right = right
-        self.top = top
-        self.bottom = bottom
+        return top, bottom, left, right
     
     def render(self):
         output = "\n"
@@ -71,11 +62,9 @@ class Sky:
         return output
     
     def draw(self, tick):
-        self.bounds()
+        (self.top, self.bottom, self.left, self.right) = self.bounds()
         width = (self.right - self.left) + 2
         height = (self.bottom - self.top) + 2
-        print("width:",width)
-        print("height:",height)
         im = Image.new('1', (width,height))
         for y in range(self.top, self.bottom+1):
             for x in range(self.left, self.right+1):
@@ -87,19 +76,22 @@ class Sky:
     
     def main(self, file):
         self.cols = [10,24,36,42]
-        #self.scale = 1/100
         input_file = open(file, "r")
         for line in input_file:
-            sky.add_point(line)
-        print(self.left,self.right)
-        print(self.top,self.bottom)
+            self.add_point(line)
         tick=0
-        while tick<10619:
-            sky.tick()
+        area = sys.maxsize
+        while True:
+            points = self.tick()
+            bounds = self.bounds(points)
+            new_area = abs(bounds[0]-bounds[1]) * abs(bounds[2]-bounds[3])
+            if new_area >= area:
+                break
+            area = new_area
+            self.points = points
             tick+=1
-
         print("Drawing ",tick)
-        self.draw(tick)            
+        self.draw(tick)
 
 if __name__ == "__main__":
     sky = Sky()
